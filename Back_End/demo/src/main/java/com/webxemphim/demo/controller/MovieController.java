@@ -51,4 +51,10 @@ public class MovieController {
         ResponseData responseData = movieService.getView(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    
+    @GetMapping("/trailer/{id}")
+    public ResponseEntity<?> startTrailer(@PathVariable int id) {
+        ResponseData responseData = movieService.startTrailer(id);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }

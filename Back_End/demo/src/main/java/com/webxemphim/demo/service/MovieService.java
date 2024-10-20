@@ -375,4 +375,18 @@ public class MovieService {
         responseData.setDesc("Lấy danh sách phim theo xếp hạng thành công.");
         return responseData;
     }
+    public ResponseData startTrailer(int movieId) {
+        ResponseData responseData = new ResponseData();
+        Optional<Movie> movie = movieRepository.findById(movieId);
+    
+        if (movie.isPresent() && movie.get().getTrailer() != null) {
+            responseData.setData(movie.get().getTrailer()); // Trả về URL trailer
+            responseData.setDesc("Lấy trailer thành công.");
+        } else {
+            responseData.setStatus(404);
+            responseData.setSuccess(false);
+            responseData.setDesc("Không tìm thấy phim hoặc trailer không tồn tại.");
+        }
+        return responseData;
+    }
 }
