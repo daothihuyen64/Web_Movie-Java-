@@ -2,7 +2,9 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router'; // Import router đã cấu hình
+import store from './store/store.js';
 
 createApp(App)
   .use(router) // Sử dụng router
+  .use(store)
   .mount('#app'); // Mount ứng dụng vào phần tử có ID #app
