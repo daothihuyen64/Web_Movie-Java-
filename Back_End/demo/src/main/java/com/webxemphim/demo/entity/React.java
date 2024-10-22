@@ -1,7 +1,11 @@
 package com.webxemphim.demo.entity;
 
+import com.webxemphim.demo.enums.EmojiType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,8 +18,12 @@ public class React {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "status")
+    private int status;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "react_type")
-    private int reactType;
+    private EmojiType reactType;
 
     @ManyToOne
     @JoinColumn(name = "id_comment")
@@ -32,15 +40,7 @@ public class React {
     public void setId(int id) {
         this.id = id;
     }
-
-    public int getReactType() {
-        return reactType;
-    }
-
-    public void setReactType(int reactType) {
-        this.reactType = reactType;
-    }
-
+    
     public Comment getComment() {
         return comment;
     }
@@ -56,4 +56,21 @@ public class React {
     public void setUser(User user) {
         this.user = user;
     }
+
+    public EmojiType getReactType() {
+        return reactType;
+    }
+
+    public void setReactType(EmojiType reactType) {
+        this.reactType = reactType;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
 }
