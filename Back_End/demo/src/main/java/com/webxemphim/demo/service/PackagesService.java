@@ -2,8 +2,10 @@ package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.PackagesDTO;
 import com.webxemphim.demo.entity.Packages;
+import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.PackagesInterface;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,23 +18,39 @@ public class PackagesService {
     @Autowired
     private PackagesInterface packagesRepository;
 
+
+
     // Thêm gói dịch vụ
-    public PackagesDTO addPackage(PackagesDTO packagesDTO) {
-        Packages packages = new Packages();
-        packages.setPackageName(packagesDTO.getPackageName());
-        packages.setPrice(packagesDTO.getPrice());
-        packages.setAccessDuration(packagesDTO.getAccessDuration());
-        packages.setDescription(packagesDTO.getDescription());
+    public ResponseData addPackage(PackagesDTO packagesDTO) {
+        ResponseData responseData = new ResponseData();
 
-        Packages savedPackage = packagesRepository.save(packages);
-        return convertToDTO(savedPackage);
+        try {
+            // Kiểm tra xem packageName đã tồn tại chưa
+            Optional<Packages> existingPackage = packagesRepository.findByPackageName(packagesDTO.getPackageName());
+            if (existingPackage.isPresent()) {
+                return new ResponseData(HttpStatus.BAD_REQUEST.value(), false, "Gói dịch vụ với tên này đã tồn tại!", null);
+            }
+
+            // Tạo đối tượng Packages mới và lưu vào database
+            Packages packages = new Packages();
+            packages.setPackageName(packagesDTO.getPackageName());
+            packages.setPrice(packagesDTO.getPrice());
+            packages.setAccessDuration(packagesDTO.getAccessDuration());
+            packages.setDescription(packagesDTO.getDescription());
+
+            Packages savedPackage = packagesRepository.save(packages);
+            return new ResponseData(200, true, "Thêm gói thành công!", convertToDTO(savedPackage));
+        } 
+        catch (Exception e) {
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Thêm gói thành công!", null);
+        }
     }
 
-    // Lấy gói dịch vụ theo ID
-    public Optional<PackagesDTO> getPackage(int id) {
-        Optional<Packages> optionalPackage = packagesRepository.findById(id);
-        return optionalPackage.map(this::convertToDTO);
-    }
+        // Lấy gói dịch vụ theo ID
+        public Optional<PackagesDTO> getPackage(int id) {
+            Optional<Packages> optionalPackage = packagesRepository.findById(id);
+            return optionalPackage.map(this::convertToDTO);
+        }
 
     // Lấy tất cả các gói dịch vụ
     public List<PackagesDTO> getPackages() {
@@ -53,13 +71,13 @@ public class PackagesService {
     // }
 
     // Xóa gói dịch vụ
-    public boolean deletePackage(int id) {
+    public ResponseData deletePackage(int id) {
         Optional<Packages> optionalPackage = packagesRepository.findById(id);
         if (optionalPackage.isPresent()) {
             packagesRepository.deleteById(id);
-            return true;
+            return new ResponseData(200, true, "Xóa gói thành công!", null);
         }
-        return false;
+        return new ResponseData(400, false, "Không thể xóa gói hoặc gói không tồn tại!", null);
     }
 
     // Chuyển đổi từ entity sang DTO

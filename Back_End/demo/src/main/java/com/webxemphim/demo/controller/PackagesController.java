@@ -18,8 +18,7 @@ public class PackagesController {
     // Thêm gói dịch vụ mới
     @PostMapping("/add")
     public ResponseEntity<?> addPackage(@RequestBody PackagesDTO packagesDTO) {
-        ResponseData responseData = new ResponseData();
-        responseData.setData(packagesService.addPackage(packagesDTO));
+        ResponseData responseData = packagesService.addPackage(packagesDTO);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
@@ -42,8 +41,7 @@ public class PackagesController {
     // Xóa gói dịch vụ
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deletePackage(@PathVariable int id) {
-        ResponseData responseData = new ResponseData();
-        responseData.setData(packagesService.deletePackage(id));
+        ResponseData responseData = packagesService.deletePackage(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 

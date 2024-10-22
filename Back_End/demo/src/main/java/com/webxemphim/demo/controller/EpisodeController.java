@@ -20,4 +20,16 @@ public class EpisodeController {
         ResponseData responseData = episodeService.addEpisode(episodeDTO);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    @PostMapping("/start/{userId}/{episodeId}")
+    public ResponseEntity<ResponseData> startEpisode(@PathVariable int userId, @PathVariable int episodeId) {
+        ResponseData responseData = episodeService.startEpisode(userId, episodeId);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    // API cập nhật URL của tập phim
+    @PutMapping("/update-url/{episodeId}")
+    public ResponseEntity<ResponseData> updateUrlEpisode(@PathVariable int episodeId, @RequestBody EpisodeDTO episode) {
+        ResponseData responseData = episodeService.updateUrlEpisode(episodeId, episode);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }

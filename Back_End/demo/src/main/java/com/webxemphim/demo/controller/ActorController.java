@@ -17,11 +17,11 @@ public class ActorController {
     @Autowired
     private ActorService actorService;
 
-    @PostMapping("/add")
-    public ResponseEntity<ResponseData> addActor(@RequestBody ActorDTO actorDTO) {
-        ResponseData responseData = actorService.addActor(actorDTO);
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
+    // @PostMapping("/add")
+    // public ResponseEntity<ResponseData> addActor(@RequestBody ActorDTO actorDTO) {
+    //     ResponseData responseData = actorService.addActor(actorDTO);
+    //     return new ResponseEntity<>(responseData, HttpStatus.OK);
+    // }
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseData> getActor(@PathVariable int id) {
@@ -29,13 +29,19 @@ public class ActorController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}/add-movie")
-    public ResponseEntity<ResponseData> updateActor(@PathVariable int id, @RequestBody int movieId) {
-        ResponseData responseData = actorService.updateActor(id, movieId);
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
+    // @PutMapping("/{id}/add-movie")
+    // public ResponseEntity<ResponseData> updateActor(@PathVariable int id, @RequestBody int movieId) {
+    //     ResponseData responseData = actorService.updateActor(id, movieId);
+    //     return new ResponseEntity<>(responseData, HttpStatus.OK);
+    // }
     // @PutMapping("/{actorId}/movies/{movieId}")
     // public ResponseData updateActor(@PathVariable int actorId, @PathVariable int movieId) {
     //     return actorService.updateActor(actorId, movieId);
     // }
+
+    @PutMapping("/update-actor/{movieId}")
+    public ResponseEntity<ResponseData> updateActor(@RequestBody ActorDTO actorDTO, @PathVariable int movieId) {
+        ResponseData responseData = actorService.updateActor(actorDTO, movieId);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }

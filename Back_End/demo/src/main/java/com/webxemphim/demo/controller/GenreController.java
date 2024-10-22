@@ -15,7 +15,7 @@ public class GenreController {
     @Autowired
     private GenreService genreService;
 
-    // Lấy thông tin thể loại (genre) và danh sách các movie liên quan theo genreID
+    // Lấy thông tin thể loại và danh sách các movie liên quan theo genreID
     @GetMapping("/{id}")
     public ResponseEntity<ResponseData> getGenre(@PathVariable int id) {
         ResponseData responseData = genreService.getGenreById(id);

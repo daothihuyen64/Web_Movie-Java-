@@ -25,6 +25,6 @@ public class SimpleCountryDTO {
     public void setCountryName(String countryName) {
         this.countryName = countryName;
     }
-
+    
 
 }
