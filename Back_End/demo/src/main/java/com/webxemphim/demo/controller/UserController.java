@@ -79,8 +79,11 @@ public class UserController {
         ResponseData responseData = new ResponseData();
 
         if(!userService.addFavoriteMovie(favoriteMovieDTO)) {
-            responseData.setDesc("Movie is already in favorites.");
+            responseData.setDesc("Phim đã có trong danh sách yêu thích.");
             responseData.setSuccess(false);
+        }
+        else {
+            responseData.setDesc("Đã thêm phim vào danh sách yêu thích");
         }
 
         return new ResponseEntity<>(responseData, HttpStatus.OK);
@@ -101,7 +104,7 @@ public class UserController {
         ResponseData responseData = new ResponseData();
 
         userService.deleteMovieFavourite(userId, movieId);
-        responseData.setDesc("Movie removed from favorites successfully.");
+        responseData.setDesc("Đã xóa phim khỏi danh sách yêu thích.");
 
        return new ResponseEntity<>(responseData, HttpStatus.OK);
         
@@ -111,12 +114,8 @@ public class UserController {
     @PostMapping("/transaction/register")
     public ResponseEntity<?> registerSubscription(@RequestBody SubscriptionDTO subscriptionDTO) {
 
-        ResponseData responseData = new ResponseData();
-        responseData.setDesc(userService.registerSubscription(subscriptionDTO));
+        ResponseData responseData = userService.registerSubscription(subscriptionDTO);
 
-        if (!responseData.getDesc().contains("successful")) {
-            responseData.setSuccess(false);
-        } 
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 

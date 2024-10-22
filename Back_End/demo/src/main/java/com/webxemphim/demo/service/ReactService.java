@@ -33,6 +33,7 @@ public class ReactService implements ReactServiceImp{
     //Thêm 1 react vào 1 Comment
     @Override
     public boolean addReact(int userId, int commentId, EmojiType reactType) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         Comment comment = commentRepository.findById(commentId)
@@ -45,10 +46,16 @@ public class ReactService implements ReactServiceImp{
         React existingReact = reactRepository.findByComment_IdAndUser_Id(commentId, userId);
 
         if (existingReact != null) {
-
-            existingReact.setReactType(reactType);
-            reactRepository.save(existingReact);
-            return false;
+            if (existingReact.getStatus() == 0) {
+                existingReact.setStatus(1); 
+                existingReact.setReactType(reactType); 
+                reactRepository.save(existingReact); 
+                return true; // Trả về true nếu thêm lại thành công
+            } else {
+                existingReact.setReactType(reactType); 
+                reactRepository.save(existingReact);
+                return false; // Trả về false nếu chỉ cập nhật
+            }
 
         } else {
             React newReact = new React();
@@ -85,7 +92,7 @@ public class ReactService implements ReactServiceImp{
      //Xoá 1 React ra khỏi 1 Comment
     @Override
     public boolean deleteReact(int userId, int commentId) {
-        // Tìm React hiện có dựa trên commentId và userId
+
         React existingReact = reactRepository.findByComment_IdAndUser_Id(commentId, userId);
         
         if (existingReact != null && existingReact.getStatus() == 1) { 
