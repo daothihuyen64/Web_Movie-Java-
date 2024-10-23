@@ -6,6 +6,17 @@ public class ResponseData {
     private String desc;
     private Object data;
 
+    public ResponseData(){
+        
+    }
+
+    public ResponseData(int status, boolean isSuccess, String desc, Object data){
+        this.status = status;
+        this.isSuccess = isSuccess;
+        this.desc = desc;
+        this.data = data;
+    }
+
     public int getStatus() {
         return status;
     }

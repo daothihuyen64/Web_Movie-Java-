@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3307/xemphim
+    url: jdbc:mysql://127.0.0.1:3306/xemphim
     username: root
-    password: huyendang211024
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

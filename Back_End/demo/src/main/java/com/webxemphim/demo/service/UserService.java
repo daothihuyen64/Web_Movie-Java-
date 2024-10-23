@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.webxemphim.demo.dto.FavoriteMovieDTO;
-import com.webxemphim.demo.dto.MovieDTO;
+import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UserDTO;
@@ -85,42 +85,42 @@ public class UserService implements UserServiceImp{
     
     //Tìm kiếm phim bằng tên phim 
     @Override
-    public List<MovieDTO> searchMoviesByName(String movieName) {
+    public List<SimpleMovieDTO> searchMoviesByName(String movieName) {
         List<Movie> movies = movieRepository.searchMoviesByName(movieName);
-        return convertToMovieDTOList(movies);
+        return convertToSimpleMovieDTOList(movies);
     }
 
     // Tìm kiếm phim theo tên diễn viên
     @Override
-    public List<MovieDTO> searchMoviesByActorName(String actorName) {
+    public List<SimpleMovieDTO> searchMoviesByActorName(String actorName) {
         List<Movie> movies = movieRepository.searchMoviesByActorName(actorName);
-        return convertToMovieDTOList(movies);
+        return convertToSimpleMovieDTOList(movies);
     }
 
-    // Hàm convert entity Movie sang MovieDTO
-    private List<MovieDTO> convertToMovieDTOList(List<Movie> movies) {
-        List<MovieDTO> movieDTOs = new ArrayList<>();
+    // Hàm convert entity Movie sang SimpleMovieDTO
+    private List<SimpleMovieDTO> convertToSimpleMovieDTOList(List<Movie> movies) {
+        List<SimpleMovieDTO> SimpleMovieDTOs = new ArrayList<>();
 
         for (Movie movie : movies) {
             List<String> actors = new ArrayList<>();
             movie.getMovie_actorList().forEach(ma -> actors.add(ma.getActor().getNameActor()));
 
-            MovieDTO movieDTO = new MovieDTO(movie.getId(), movie.getMovieName(), movie.getPoster(), movie.getTotalEpisodes());
+            SimpleMovieDTO SimpleMovieDTO = new SimpleMovieDTO(movie.getId(), movie.getMovieName(), movie.getPoster(), movie.getRatingMean());
     
-            movieDTOs.add(movieDTO);
+            SimpleMovieDTOs.add(SimpleMovieDTO);
         }
 
-        return movieDTOs;
+        return SimpleMovieDTOs;
     }
 
     //Thêm phim yêu thích
     @Override
-    public boolean addFavoriteMovie(FavoriteMovieDTO favoriteMovieDTO) {
+    public boolean addFavoriteMovie(FavoriteMovieDTO favoriteSimpleMovieDTO) {
 
         Favorite_Movie favoriteMovie = new Favorite_Movie();
 
-        User user = userRepository.findById(favoriteMovieDTO.getUserId()).orElse(null);
-        Movie movie = movieRepository.findById(favoriteMovieDTO.getMovieId()).orElse(null);
+        User user = userRepository.findById(favoriteSimpleMovieDTO.getUserId()).orElse(null);
+        Movie movie = movieRepository.findById(favoriteSimpleMovieDTO.getMovieId()).orElse(null);
 
         Favorite_Movie existingFavorite = favoriteMovieRepository.findByUserIdAndMovieId(user.getId(), movie.getId());
         if (existingFavorite != null) {
@@ -143,17 +143,17 @@ public class UserService implements UserServiceImp{
 
     //Lấy danh sách phim yêu thích của User
     @Override
-    public List<MovieDTO> getFavoriteMovies(int userId) {
+    public List<SimpleMovieDTO> getFavoriteMovies(int userId) {
         
         List<Favorite_Movie> favorites = favoriteMovieRepository.findByUserId(userId);
 
         return favorites.stream()
                 .filter(Favorite_Movie::isActive) //Chỉ lấy các phim có active là true
-                .map(fav -> new MovieDTO(
+                .map(fav -> new SimpleMovieDTO(
                         fav.getMovie().getId(), 
                         fav.getMovie().getMovieName(), 
                         fav.getMovie().getPoster(), 
-                        fav.getMovie().getTotalEpisodes()
+                        fav.getMovie().getRatingMean()
                         ))
                 .collect(Collectors.toList());
     }

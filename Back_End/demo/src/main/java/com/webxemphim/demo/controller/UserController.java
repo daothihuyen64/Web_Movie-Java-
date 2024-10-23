@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webxemphim.demo.dto.FavoriteMovieDTO;
-import com.webxemphim.demo.dto.MovieDTO;
+import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UserDTO;
@@ -56,29 +56,29 @@ public class UserController {
 
     // Tìm kiếm theo tên phim
     @GetMapping("/search/name")
-    public ResponseEntity<List<MovieDTO>> searchMoviesByName(@RequestParam String movieName) {
+    public ResponseEntity<List<SimpleMovieDTO>> searchMoviesByName(@RequestParam String movieName) {
 
-        List<MovieDTO> movies = userService.searchMoviesByName(movieName);
+        List<SimpleMovieDTO> movies = userService.searchMoviesByName(movieName);
         return ResponseEntity.ok(movies);
 
     }
 
     // Tìm kiếm theo tên diễn viên
     @GetMapping("/search/actor")
-    public ResponseEntity<List<MovieDTO>> searchMoviesByActorName(@RequestParam String actorName) {
+    public ResponseEntity<List<SimpleMovieDTO>> searchMoviesByActorName(@RequestParam String actorName) {
 
-        List<MovieDTO> movies = userService.searchMoviesByActorName(actorName);
+        List<SimpleMovieDTO> movies = userService.searchMoviesByActorName(actorName);
         return ResponseEntity.ok(movies);
 
     }
 
     //Thêm phim yêu thích
     @PostMapping("/favoriteMovie/add")
-    public ResponseEntity<?> addFavoriteMovie(@RequestBody FavoriteMovieDTO favoriteMovieDTO) {
+    public ResponseEntity<?> addFavoriteMovie(@RequestBody FavoriteMovieDTO favoriteSimpleMovieDTO) {
 
         ResponseData responseData = new ResponseData();
 
-        if(!userService.addFavoriteMovie(favoriteMovieDTO)) {
+        if(!userService.addFavoriteMovie(favoriteSimpleMovieDTO)) {
             responseData.setDesc("Phim đã có trong danh sách yêu thích.");
             responseData.setSuccess(false);
         }
@@ -92,7 +92,7 @@ public class UserController {
 
     //Lấy danh sách phim yêu thích của 1 User
     @GetMapping("/favoriteMovie/{userId}")
-    public ResponseEntity<List<MovieDTO>> getFavoriteMovies(@PathVariable int userId) {
+    public ResponseEntity<List<SimpleMovieDTO>> getFavoriteMovies(@PathVariable int userId) {
 
         return new ResponseEntity<>(userService.getFavoriteMovies(userId), HttpStatus.OK);
         
