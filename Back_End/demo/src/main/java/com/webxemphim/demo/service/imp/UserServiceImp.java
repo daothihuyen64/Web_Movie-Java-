@@ -9,6 +9,7 @@ import com.webxemphim.demo.dto.MovieDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UserDTO;
+import com.webxemphim.demo.payload.ResponseData;
 
 public interface UserServiceImp {
     UserDTO getUser(int id);
@@ -16,7 +17,7 @@ public interface UserServiceImp {
     boolean addFavoriteMovie(FavoriteMovieDTO favoriteMovieDTO);
     List<MovieDTO> getFavoriteMovies(int userId);
     void deleteMovieFavourite(int userId, int movieId);
-    String registerSubscription(SubscriptionDTO subscriptionDTO);
+    ResponseData registerSubscription(SubscriptionDTO subscriptionDTO);
     List<TransactionHistoryDTO> getTransactionHistory(int userId);
     List<MovieDTO> searchMoviesByName(String movieName);
     List<MovieDTO> searchMoviesByActorName(String actorName);

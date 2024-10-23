@@ -23,6 +23,7 @@ import com.webxemphim.demo.entity.Movie;
 import com.webxemphim.demo.entity.Packages;
 import com.webxemphim.demo.entity.Transaction;
 import com.webxemphim.demo.entity.User;
+import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.FavoriteMovieRepository;
 import com.webxemphim.demo.repository.MovieRepository;
 import com.webxemphim.demo.repository.PackagesRepository;
@@ -82,9 +83,8 @@ public class UserService implements UserServiceImp{
         return true;
     }
     
-    //Search phim bằng tên phim 
+    //Tìm kiếm phim bằng tên phim 
     @Override
-    // Tìm kiếm theo tên phim
     public List<MovieDTO> searchMoviesByName(String movieName) {
         List<Movie> movies = movieRepository.searchMoviesByName(movieName);
         return convertToMovieDTOList(movies);
@@ -124,7 +124,12 @@ public class UserService implements UserServiceImp{
 
         Favorite_Movie existingFavorite = favoriteMovieRepository.findByUserIdAndMovieId(user.getId(), movie.getId());
         if (existingFavorite != null) {
-            return false;
+            if (!existingFavorite.isActive()) {
+                existingFavorite.setActive(true);
+                favoriteMovieRepository.save(existingFavorite); 
+                return true;
+            }
+            return false; 
         }
 
         favoriteMovie.setUser(user);
@@ -163,7 +168,9 @@ public class UserService implements UserServiceImp{
 
     //Đăng kí gói dịch vụ
     @Override
-    public String registerSubscription(SubscriptionDTO subscriptionDTO) {
+    public ResponseData registerSubscription(SubscriptionDTO subscriptionDTO) {
+        ResponseData responseData = new ResponseData();
+
         User user = userRepository.findById(subscriptionDTO.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
@@ -172,7 +179,9 @@ public class UserService implements UserServiceImp{
 
         // Kiểm tra gói dịch vụ hiện tại của người dùng
         if (latestTransaction != null && !latestTransaction.getEndDate().before(new Date())) {
-            return "You currently have an active subscription until " + latestTransaction.getEndDate();
+            responseData.setSuccess(false);
+            responseData.setDesc("Bạn hiện đang có một gói đăng ký đang hoạt động đến " + latestTransaction.getEndDate());
+            return responseData; 
         }
 
         // Lấy gói dịch vụ
@@ -193,10 +202,13 @@ public class UserService implements UserServiceImp{
 
             transactionRepository.save(newTransaction);
 
-            return "Subscription successful! You can access content until " + endDate;
+            responseData.setSuccess(true);
+            responseData.setDesc("Đăng ký thành công! Bạn có thể truy cập xem phim cho đến " + endDate);
         } else {
-            return "Payment failed. Please try again.";
+            responseData.setSuccess(false);
+            responseData.setDesc("Thanh toán không thành công. Vui lòng thử lại.");
         }
+        return responseData;
     }
 
      //Truy xuất lịch sử giao dịch
