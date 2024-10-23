@@ -2,8 +2,6 @@ package com.webxemphim.demo.service.imp;
 
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
-
 import com.webxemphim.demo.dto.FavoriteMovieDTO;
 import com.webxemphim.demo.dto.MovieDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;

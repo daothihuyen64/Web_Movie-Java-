@@ -3,8 +3,6 @@ package com.webxemphim.demo.service;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.webxemphim.demo.entity.Role;
@@ -25,9 +23,6 @@ public class LoginService implements LoginServiceImp{
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private JavaMailSender mailSender;
-
 
     @Override
     public boolean checkLogin(String username, String password) {
@@ -42,13 +37,19 @@ public class LoginService implements LoginServiceImp{
     public ResponseData addUser(SignUpRequest signUpRequest) {
         ResponseData responseData = new ResponseData();
 
-        if (userRepository.existsByNickName(signUpRequest.getNickName())) {
+        if (!isValidEmail(signUpRequest.getUsername())) { 
+            responseData.setSuccess(false);
+            responseData.setDesc("Email không hợp lệ.");
+            return responseData;
+        }
+
+        if (userRepository.existsByNickName(signUpRequest.getNickname())) {
             responseData.setSuccess(false);
             responseData.setDesc("Nickname đã tồn tại.");
             return responseData;
         }
 
-        if (userRepository.existsByUserName(signUpRequest.getUserName())) {
+        if (userRepository.existsByUserName(signUpRequest.getUsername())) {
             responseData.setSuccess(false);
             responseData.setDesc("Username đã tồn tại.");
             return responseData;
@@ -76,10 +77,10 @@ public class LoginService implements LoginServiceImp{
         role.setId(1);
 
         User user = new User();
-        user.setUserName(signUpRequest.getUserName());
+        user.setUserName(signUpRequest.getUsername());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword())); 
         user.setPhone(signUpRequest.getPhone());
-        user.setNickName(signUpRequest.getNickName());
+        user.setNickName(signUpRequest.getNickname());
         user.setRole(role);
         
         try {
@@ -100,44 +101,9 @@ public class LoginService implements LoginServiceImp{
         return true;
     }
 
-    // public boolean processForgotPassword(String userName) {
-    //     User user = userRepository.findByUserName(userName);
-    //     if (user != null) {
-    //         // Tạo mật khẩu tạm thời
-    //         String temporaryPassword = generateTemporaryPassword();
-
-    //         // Mã hóa mật khẩu
-    //         user.setPassword(passwordEncoder.encode(temporaryPassword));
-
-    //         // Cập nhật mật khẩu vào cơ sở dữ liệu
-    //         userRepository.save(user);
-
-    //         // Gửi email
-    //         String subject = "Mật khẩu mới của bạn";
-    //         String body = "Mật khẩu tạm thời của bạn là: " + temporaryPassword + "\nHãy đổi mật khẩu sau khi đăng nhập.";
-    //         sendSimpleEmail(user.getUserName(), subject, body);
-
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
-    // private String generateTemporaryPassword() {
-    //     String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    //     StringBuilder password = new StringBuilder();
-    //     Random random = new Random();
-    //     for (int i = 0; i < 8; i++) {
-    //         password.append(characters.charAt(random.nextInt(characters.length())));
-    //     }
-    //     return password.toString();
-    // }
-
-    // public void sendSimpleEmail(String toEmail, String subject, String body) {
-    //     SimpleMailMessage message = new SimpleMailMessage();
-    //     message.setTo(toEmail);
-    //     message.setSubject(subject);
-    //     message.setText(body);
-    //     mailSender.send(message);
-    // }
+    public boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        return email.matches(emailRegex);
+    }  
 
 }

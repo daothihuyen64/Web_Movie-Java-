@@ -9,7 +9,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +18,7 @@ import com.webxemphim.demo.repository.LoginRepository;
 
 import com.webxemphim.demo.entity.User;
 import com.webxemphim.demo.payload.ResponseData;
+import com.webxemphim.demo.payload.request.LoginRequest;
 import com.webxemphim.demo.payload.request.SignUpRequest;
 import com.webxemphim.demo.service.LoginService;
 import com.webxemphim.demo.service.imp.LoginServiceImp;
@@ -39,9 +39,6 @@ public class LoginController {
     LoginService loginService;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     LoginRepository loginRepository;
 
     @Autowired
@@ -49,12 +46,15 @@ public class LoginController {
 
     //Đăng nhập
     @PostMapping("/signin")
-    public ResponseEntity<ResponseData> signin(@RequestParam String username, @RequestParam String password) {
+    public ResponseEntity<ResponseData> signin(@RequestBody LoginRequest loginRequest) {
        ResponseData responseData = new ResponseData();
 
         // SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         // String encrypted = Encoders.BASE64.encode(secretKey.getEncoded());
         // System.out.println(encrypted);
+
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
 
        if(loginServiceImp.checkLogin(username, password)) {
             String token = jwtUtilsHelper.generateToken(username);
@@ -64,6 +64,7 @@ public class LoginController {
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("userId", user.getId());
+            response.put("nickname", user.getNickName());
 
             responseData.setData(response);
             responseData.setDesc("Đăng nhập thành công.");
@@ -99,16 +100,5 @@ public class LoginController {
 
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
-
-    // @PostMapping("/forgotpassword")
-    // public ResponseEntity<String> forgotPassword(@RequestParam String username) {
-    //     ResponseData responseData = new ResponseData();
-    //     boolean isProcessed = loginService.processForgotPassword(username);
-    //     if (isProcessed) {
-    //         return ResponseEntity.ok("Mật khẩu mới đã được gửi tới email của bạn.");
-    //     } else {
-    //         return ResponseEntity.badRequest().body("Không tìm thấy người dùng với email này.");
-    //     }
-    // }
 
 }
