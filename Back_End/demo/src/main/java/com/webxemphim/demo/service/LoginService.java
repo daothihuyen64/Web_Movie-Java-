@@ -67,6 +67,12 @@ public class LoginService implements LoginServiceImp{
             return responseData;
         }
 
+        if (!isValidPhone(signUpRequest.getPhone())) {
+            responseData.setSuccess(false);
+            responseData.setDesc("Số điện thoại không hợp lệ.");
+            return responseData;
+        }
+
         if (userRepository.existsByPhone(signUpRequest.getPhone())) {
             responseData.setSuccess(false);
             responseData.setDesc("Số điện thoại đã tồn tại.");
@@ -105,5 +111,10 @@ public class LoginService implements LoginServiceImp{
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
         return email.matches(emailRegex);
     }  
+
+    public boolean isValidPhone(String phone) {
+        String phoneRegex = "^\\d{10}$"; 
+        return phone.matches(phoneRegex);
+    }
 
 }
