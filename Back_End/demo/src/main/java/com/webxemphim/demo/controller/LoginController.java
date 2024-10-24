@@ -19,6 +19,7 @@ import com.webxemphim.demo.repository.LoginRepository;
 import com.webxemphim.demo.entity.User;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.payload.request.LoginRequest;
+import com.webxemphim.demo.payload.request.LogoutRequest;
 import com.webxemphim.demo.payload.request.SignUpRequest;
 import com.webxemphim.demo.service.LoginService;
 import com.webxemphim.demo.service.imp.LoginServiceImp;
@@ -65,6 +66,7 @@ public class LoginController {
             response.put("token", token);
             response.put("userId", user.getId());
             response.put("nickname", user.getNickName());
+            response.put("role", user.getRole().getId());
 
             responseData.setData(response);
             responseData.setDesc("Đăng nhập thành công.");
@@ -90,7 +92,9 @@ public class LoginController {
 
     //Đăng xuất 
     @PostMapping("/logout")
-    public ResponseEntity<ResponseData> logout(@RequestParam String token) {
+    public ResponseEntity<ResponseData> logout(@RequestBody LogoutRequest logoutRequest) {
+
+        String token = logoutRequest.getToken();
         // Thêm token vào blacklist
         jwtUtilsHelper.addTokenToBlacklist(token);
 
