@@ -13,15 +13,19 @@
       <div class="user-info">
         <!-- Nếu người dùng đã đăng nhập, hiển thị thông tin user -->
         <div v-if="isAuthenticated" class="logged-in-info">
-          <img :src="user.avatar" alt="User Avatar" class="avatar" />
-          <span class="user-name">{{ user.name }}</span>
+          <!-- Nếu user.avatar có giá trị, sử dụng avatar từ server, nếu không thì sử dụng ảnh mặc định -->
+          <img 
+            :src="avatarUrl" 
+            alt="User Avatar" 
+            class="avatar" 
+          />
+          <span class="user-name">{{ nickname || 'Guest' }}</span>
           <button @click="logout" class="logout-button">Đăng xuất</button>
         </div>
 
         <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập -->
         <div v-else class="auth-buttons">
           <router-link to="/login" class="auth-button">Đăng nhập</router-link>
-          <!-- <router-link to="/signup" class="auth-button signup">Đăng ký</router-link> -->
         </div>
       </div>
     </nav>
@@ -32,12 +36,16 @@
 export default {
   name: 'HeaderComponent',
   computed: {
-    // Sử dụng getter từ Vuex để lấy thông tin user và trạng thái đăng nhập
-    user() {
-      return this.$store.getters.user;
+    // Sử dụng getter từ Vuex để lấy thông tin nickname và trạng thái đăng nhập
+    nickname() {
+      return this.$store.getters.nickname; // Lấy từ getter nickname trong auth.js
     },
     isAuthenticated() {
-      return this.$store.getters.isAuthenticated;
+      return this.$store.getters.isAuthenticated; // Lấy trạng thái đăng nhập từ Vuex
+    },
+    avatarUrl() {
+      // Nếu có avatar từ user, dùng nó, nếu không thì dùng ảnh mặc định
+      return this.user?.avatar || 'https://img6.thuthuatphanmem.vn/uploads/2022/01/27/anh-co-be-de-thuong-tuyet-dep_011758553.jpg';
     }
   },
   methods: {
@@ -155,12 +163,4 @@ export default {
 .auth-button:hover {
   background-color: #2980b9;
 }
-
-/* .auth-button.signup {
-  background-color: #2ecc71;
-} */
-
-/* .auth-button.signup:hover {
-  background-color: #27ae60;
-} */
 </style>

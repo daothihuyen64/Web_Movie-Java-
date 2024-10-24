@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Tạo instance Axios
 const instance = axios.create({
-  baseURL: 'http://localhost:8081/', // URL cơ bản cho tất cả các yêu cầu
+  baseURL: 'http://localhost:8080/', // URL cơ bản cho tất cả các yêu cầu
   timeout: 10000, // Thời gian timeout
   headers: {
     'Content-Type': 'application/json', // Định dạng dữ liệu
