@@ -14,6 +14,7 @@ import com.webxemphim.demo.repository.ReleaseYearInterface;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -226,4 +227,25 @@ public class MovieService {
             return new ResponseData(404, false, e.getMessage(), null);
         }
     }
+
+    public ResponseData trendingMovie() {
+        List<SimpleMovieDTO> trendingMovies = movieRepository.findTop20ByOrderByViewsDesc()
+                .stream()
+                .filter(movie -> movie.getStatus() != 0) // Không trả về phim có status = 0
+                .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
+                .collect(Collectors.toList());
+    
+        return new ResponseData(200, true, "Lấy danh sách phim trending thành công!", trendingMovies);
+    }
+    
+    public ResponseData newReleaseMovie() {
+        List<SimpleMovieDTO> newMovies = movieRepository.findTop100ByOrderByIdDesc()
+                .stream()
+                .filter(movie -> movie.getStatus() != 0) // Không trả về phim có status = 0
+                .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
+                .collect(Collectors.toList());
+    
+        return new ResponseData(200, true, "Lấy danh sách phim mới phát hành thành công!", newMovies);
+    }
+    
 }

@@ -57,4 +57,15 @@ public class MovieController {
         ResponseData responseData = movieService.startTrailer(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    @GetMapping("/trending")
+    public ResponseEntity<?> trendingMovies() {
+        ResponseData responseData = movieService.trendingMovie();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @GetMapping("/new-releases")
+    public ResponseEntity<?> newReleaseMovies() {
+        ResponseData responseData = movieService.newReleaseMovie();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }
