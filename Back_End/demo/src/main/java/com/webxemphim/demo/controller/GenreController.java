@@ -21,4 +21,9 @@ public class GenreController {
         ResponseData responseData = genreService.getGenreById(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    @GetMapping
+    public ResponseEntity<ResponseData> getAllGenres() {
+        ResponseData responseData = genreService.getAllGenre();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }

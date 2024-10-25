@@ -1,6 +1,7 @@
 package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.GenreDTO;
+import com.webxemphim.demo.dto.SimpleGenreDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.entity.Genre;
 import com.webxemphim.demo.payload.ResponseData;
@@ -51,5 +52,21 @@ public class GenreService {
 
         return responseData;
     }
+    public ResponseData getAllGenre() {
+        ResponseData responseData = new ResponseData();
+        List<Genre> genres = genreRepository.findAll(); // Lấy danh sách tất cả thể loại
 
+        List<SimpleGenreDTO> genreDTOs = genres.stream()
+                .map(genre -> {
+                    SimpleGenreDTO genreDTO = new SimpleGenreDTO();
+                    genreDTO.setId(genre.getId()); // Cập nhật ID
+                    genreDTO.setGenreName(genre.getGenreName()); // Cập nhật tên
+                    return genreDTO;
+                })
+                .collect(Collectors.toList());
+
+        responseData.setData(genreDTOs);
+        responseData.setDesc("Lấy tất cả thể loại thành công!");
+        return responseData;
+    }
 }
