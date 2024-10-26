@@ -132,13 +132,13 @@ public class MovieService {
     
     
         // Cập nhật thông tin từ DTO vào Entity
-        movie.setMovieName(movieDTO.getMovieName());
-        movie.setPoster(movieDTO.getPoster());
-        movie.setTrailer(movieDTO.getTrailer());
-        movie.setDescription(movieDTO.getDescription());
-        movie.setDirector(movieDTO.getDirector());
-        movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
-        movie.setViews(movieDTO.getViews());
+        if(movieDTO.getMovieName() != null) movie.setMovieName(movieDTO.getMovieName());
+        if(movieDTO.getPoster() != null) movie.setPoster(movieDTO.getPoster());
+        if(movieDTO.getTrailer() != null) movie.setTrailer(movieDTO.getTrailer());
+        if(movieDTO.getDescription() != null) movie.setDescription(movieDTO.getDescription());
+        if(movieDTO.getDirector() != null) movie.setDirector(movieDTO.getDirector());
+        if(movieDTO.getTotalEpisodes() != 0) movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
+        if(movieDTO.getViews() != 0) movie.setViews(movieDTO.getViews());
         movie.setStatus(1); // Giữ status là 1 khi cập nhật
     
         // Cập nhật Genre

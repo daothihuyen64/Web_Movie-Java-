@@ -1,16 +1,12 @@
 package com.webxemphim.demo.service;
 
-import com.webxemphim.demo.dto.GenreDTO;
 import com.webxemphim.demo.dto.ReleaseYearDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.dto.SimpleReleaseYearDTO;
-import com.webxemphim.demo.entity.Genre;
-import com.webxemphim.demo.entity.Movie;
 import com.webxemphim.demo.entity.Release_Year;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.ReleaseYearInterface;
 
-import org.apache.logging.log4j.util.PropertySource.Comparator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,34 +23,7 @@ public class ReleaseYearService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public ResponseData getReleaseYearById(int releaseYearId) {
-        ResponseData responseData = new ResponseData();
-
-        Optional<Release_Year> releaseYear = releaseYearRepository.findById(releaseYearId);
-
-        if (releaseYear.isPresent()) {
-            List<SimpleMovieDTO> movieDTOList = releaseYear.get().getMovieList().stream()
-                    .filter(movie -> movie.getStatus() != 0)
-                    .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
-                    .collect(Collectors.toList());
-;
-
-            ReleaseYearDTO releaseYearDTO = modelMapper.map(releaseYear, ReleaseYearDTO.class);
-            releaseYearDTO.setMovies(movieDTOList);
-            responseData.setData(releaseYearDTO);;
-            responseData.setDesc("Đã lấy năm phát hành thành công!");
-            responseData.setData(releaseYearDTO);
-        }
-        else {
-            responseData.setStatus(404);
-            responseData.setSuccess(false);
-            responseData.setDesc("Không tìm thấy năm phát hành!");
-        }
-
-        return responseData;
-    }
     public ResponseData getAllReleaseYear() {
-        ResponseData responseData = new ResponseData();
         List<Release_Year> years = releaseYearRepository.findAll(); // Lấy danh sách tất cả thể loại
 
         List<SimpleReleaseYearDTO> yearDTOs = years.stream()
@@ -66,14 +35,12 @@ public class ReleaseYearService {
                 })
                 .collect(Collectors.toList());
 
-        responseData.setData(yearDTOs);
-        responseData.setDesc("Lấy tất cả thể loại thành công!");
-        return responseData;
+        return new ResponseData(200, true, "Lấy tất cả năm phát hành thành công!", yearDTOs);
     }
+    // Thêm hàm
     // Hàm trả về danh sách phim trending
+    
     public ResponseData trendingMovie() {
-        ResponseData responseData = new ResponseData();
-
         // Lấy năm phát hành mới nhất
         // Lấy năm phát hành mới nhất mà không sử dụng Comparator.comparing
         Optional<Release_Year> latestReleaseYear = releaseYearRepository.findAll().stream()
@@ -87,19 +54,14 @@ public class ReleaseYearService {
                     .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
                     .collect(Collectors.toList());
 
-            responseData.setData(trendingMovies);
-            responseData.setDesc("Lấy danh sách phim trending thành công!");
-        } else {
-            responseData.setStatus(404);
-            responseData.setSuccess(false);
-            responseData.setDesc("Không tìm thấy năm phát hành mới nhất!");
+            return new ResponseData(200, true, "Lấy danh sách phim trending thành công!", trendingMovies);
+        } 
+        else {
+            return new ResponseData(404, false, "Không tìm thấy năm phát hành mới nhất!", null);
         }
-
-        return responseData;
     }
     // Hàm trả về danh sách phim mới nhất
     public ResponseData newReleaseMovie() {
-        ResponseData responseData = new ResponseData();
 
         // Lấy tất cả các năm phát hành, sắp xếp theo thứ tự giảm dần
         List<Release_Year> allReleaseYears = releaseYearRepository.findAll().stream()
@@ -121,8 +83,27 @@ public class ReleaseYearService {
                 .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class)) // Chuyển đổi sang DTO
                 .collect(Collectors.toList());
 
-        responseData.setData(latestMovies);
-        responseData.setDesc("Lấy danh sách phim mới nhất thành công!");
-        return responseData;
+        return new ResponseData(200, true, "Lấy danh sách phim mới nhất thành công!", latestMovies);
     }
+
+    public ResponseData getReleaseYearById(int releaseYearId) {
+
+        Optional<Release_Year> releaseYear = releaseYearRepository.findById(releaseYearId);
+
+        if (releaseYear.isPresent()) {
+            List<SimpleMovieDTO> movieDTOList = releaseYear.get().getMovieList().stream()
+                    .filter(movie -> movie.getStatus() != 0)
+                    .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
+                    .collect(Collectors.toList());
+
+            ReleaseYearDTO releaseYearDTO = modelMapper.map(releaseYear, ReleaseYearDTO.class);
+            releaseYearDTO.setMovies(movieDTOList);
+            return new ResponseData(200, true, "Đã lấy năm phát hành thành công!", releaseYearDTO);
+        }
+        else {
+            return new ResponseData(400, false, "Không tìm thấy năm phát hành!", null);
+        }
+    }
+    
+    
 }

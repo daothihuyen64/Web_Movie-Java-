@@ -24,7 +24,6 @@ public class GenreService {
     private ModelMapper modelMapper;
     // Truy xuất danh sách movie theo genreID
     public ResponseData getGenreById(int genreId) {
-        ResponseData responseData = new ResponseData();
 
         Optional<Genre> genre = genreRepository.findById(genreId);
 
@@ -39,21 +38,15 @@ public class GenreService {
             // Trả về ResponseData thành công với dữ liệu GenreDTO
             GenreDTO genreDTO = modelMapper.map(genre, GenreDTO.class);
             genreDTO.setMovieList(movieDTOList);
-            responseData.setData(genreDTO);;
-            responseData.setDesc("Đã lấy thể loại thành công!");
-            responseData.setData(genreDTO);
+
+            return new ResponseData(200, true, "Đã lấy thể loại thành công!", genreDTO);
         } 
         else {
             // Nếu không tìm thấy genre, trả về ResponseData với lỗi
-            responseData.setStatus(404);
-            responseData.setSuccess(false);
-            responseData.setDesc("Không tìm thấy thể loại!");
+            return new ResponseData(404, false, "Không tìm thấy thể loại!", null);
         }
-
-        return responseData;
     }
     public ResponseData getAllGenre() {
-        ResponseData responseData = new ResponseData();
         List<Genre> genres = genreRepository.findAll(); // Lấy danh sách tất cả thể loại
 
         List<SimpleGenreDTO> genreDTOs = genres.stream()
@@ -65,8 +58,6 @@ public class GenreService {
                 })
                 .collect(Collectors.toList());
 
-        responseData.setData(genreDTOs);
-        responseData.setDesc("Lấy tất cả thể loại thành công!");
-        return responseData;
+        return new ResponseData(200, true, "Lấy tất cả thể loại thành công!", genreDTOs);
     }
 }
