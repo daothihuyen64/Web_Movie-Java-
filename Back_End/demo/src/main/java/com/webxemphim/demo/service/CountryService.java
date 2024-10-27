@@ -2,6 +2,7 @@ package com.webxemphim.demo.service;
 
 
 import com.webxemphim.demo.dto.CountryDTO;
+import com.webxemphim.demo.dto.SimpleCountryDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.payload.ResponseData;
@@ -49,6 +50,23 @@ public class CountryService {
             responseData.setDesc("Không tìm thấy quốc gia!");
         }
 
+        return responseData;
+    }
+    public ResponseData getAllCountry() {
+        ResponseData responseData = new ResponseData();
+        List<Country> countries = countryRepository.findAll(); // Lấy danh sách tất cả thể loại
+
+        List<SimpleCountryDTO> countryDTOs = countries.stream()
+                .map(country -> {
+                    SimpleCountryDTO countryDTO = new SimpleCountryDTO();
+                    countryDTO.setId(country.getId()); // Cập nhật ID
+                    countryDTO.setCountryName(country.getCountryName()); // Cập nhật tên
+                    return countryDTO;
+                })
+                .collect(Collectors.toList());
+
+        responseData.setData(countryDTOs);
+        responseData.setDesc("Lấy tất cả các quốc gia thành công!");
         return responseData;
     }
 }

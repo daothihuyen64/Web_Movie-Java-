@@ -10,7 +10,7 @@
     <nav class="nav">
       <router-link to="/" class="nav-link">Home</router-link>
 
-      <div class="user-info">
+      <div class="user-info" @click="toggleDropdown"  >
         <!-- Nếu người dùng đã đăng nhập, hiển thị thông tin user -->
         <div v-if="isAuthenticated" class="logged-in-info">
           <!-- Nếu user.avatar có giá trị, sử dụng avatar từ server, nếu không thì sử dụng ảnh mặc định -->
@@ -18,49 +18,77 @@
             :src="avatarUrl" 
             alt="User Avatar" 
             class="avatar" 
+            
           />
-          <span class="user-name">{{ nickname || 'Guest' }}</span>
-          <button @click="logout" class="logout-button">Đăng xuất</button>
+          <span class="user-name" >{{ nickname || 'Guest' }}</span>
+          
+          <!-- Menu thả xuống -->
+         
+          <div :class="{'dropdown-menu': true, 'active': isDropdownOpen}">
+            <ul>
+              <li><router-link to="/transaction">Gói dịch vụ</router-link></li>
+              <li><router-link to="/favouriteMovies">Tủ phim yêu thích</router-link></li>
+              <li><router-link to="/settings">Cài đặt</router-link></li>
+              <li><a @click="logout">Đăng xuất</a></li>
+            </ul>
+          </div>
+
         </div>
 
         <!-- Nếu chưa đăng nhập, hiển thị nút đăng nhập -->
         <div v-else class="auth-buttons">
-          <router-link to="/login" class="auth-button">Đăng nhập</router-link>
+          <router-link to="/signin" class="auth-button">Đăng nhập</router-link>
         </div>
       </div>
     </nav>
   </header>
 </template>
-
 <script>
 export default {
   name: 'HeaderComponent',
+  data() {
+    return {
+      isDropdownOpen: false, // Trạng thái của menu thả xuống
+    };
+  },
   computed: {
-    // Sử dụng getter từ Vuex để lấy thông tin nickname và trạng thái đăng nhập
     nickname() {
-      return this.$store.getters.nickname; // Lấy từ getter nickname trong auth.js
+      return this.$store.getters.nickname;
     },
     isAuthenticated() {
-      return this.$store.getters.isAuthenticated; // Lấy trạng thái đăng nhập từ Vuex
+      return this.$store.getters.isAuthenticated;
     },
     avatarUrl() {
-      // Nếu có avatar từ user, dùng nó, nếu không thì dùng ảnh mặc định
       return this.user?.avatar || 'https://img6.thuthuatphanmem.vn/uploads/2022/01/27/anh-co-be-de-thuong-tuyet-dep_011758553.jpg';
     }
   },
+ mounted() {
+    // Đóng dropdown khi nhấp ra ngoài
+    document.addEventListener('click', this.closeDropdownOnClickOutside);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.closeDropdownOnClickOutside);
+  },
   methods: {
+    toggleDropdown() {
+      this.isDropdownOpen = !this.isDropdownOpen;
+    },
+    closeDropdownOnClickOutside(event) {
+      if (this.isDropdownOpen && !this.$el.contains(event.target)) {
+        this.isDropdownOpen = false;
+      }
+    },
     logout() {
-      // Gọi action logout từ Vuex
       this.$store.dispatch('logout');
-      // Điều hướng về trang chủ sau khi đăng xuất
-      this.$router.push({ name: 'home' });
+      this.$router.push('/signin');
     }
   }
 };
 </script>
 
+
+
 <style scoped>
-/* CSS cho Header */
 .header {
   display: flex;
   justify-content: space-between;
@@ -163,4 +191,49 @@ export default {
 .auth-button:hover {
   background-color: #2980b9;
 }
+/* Thêm các CSS cho dropdown */
+/* Thay đổi menu thả xuống */
+.dropdown-menu {
+  display: none;
+  position: absolute; /* Định vị tuyệt đối so với phần tử chứa nó */
+  top: 80px; /* Điều chỉnh vị trí xuống dưới một chút */
+  /* left: 0; Căn chỉnh về bên trái của phần tử cha */
+  background-color: #333; /* Màu nền cho dropdown */
+  padding: 10px;
+  border-radius: 8px;
+  flex-direction: column;
+  min-width: 150px; /* Đặt độ rộng tối thiểu cho menu */
+  z-index: 1000; /* Đảm bảo dropdown luôn nằm trên các phần tử khác */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bóng cho menu */
+}
+
+.dropdown-menu.active {
+  display: flex; /* Hiển thị dropdown khi được kích hoạt */
+}
+
+/* Định dạng cho các mục trong dropdown */
+.dropdown-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-menu li {
+  margin: 5px 0;
+}
+
+.dropdown-menu a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 10px;
+  display: block;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.dropdown-menu a:hover {
+  background-color: #444; /* Màu khi hover */
+}
+
+
 </style>

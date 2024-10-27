@@ -1,17 +1,23 @@
 <template>
   <div class="movie-card" 
+       @click="goToMovieInfo"
        @mouseover="hover = true" 
        @mouseleave="hover = false">
-    <img :src="movie.image" :alt="movie.title" class="movie-card__image" />
+    <img :src="movie.poster" :alt="movie.movieName" class="movie-card__image" />
     <div class="info">
-      <span>{{ movie.episode }}</span>
-      <h3>{{ movie.title }}</h3>
-      <span>{{ movie.year }}</span>
+      <span>{{ movie.ratingMean }}</span>
+      <h3>{{ movie.movieName }}</h3>
+    </div>
+    <div v-if="hover" class="hover-info">
+      <!-- Bạn có thể thêm thông tin hiển thị khi hover ở đây -->
     </div>
   </div>
 </template>
 
 <script>
+import { useRouter } from 'vue-router'; // Sử dụng vue-router để điều hướng
+import { ref } from 'vue'; // Nhập ref để theo dõi trạng thái
+
 export default {
   name: "MovieCard",
   props: {
@@ -20,11 +26,23 @@ export default {
       required: true,
     }
   },
-  data() {
-    return {
-      hover: false, // Biến để điều khiển trạng thái hover
+  setup(props) {
+    const router = useRouter();
+    const hover = ref(false); // Sử dụng ref để theo dõi trạng thái hover
+
+    const goToMovieInfo = () => {
+      // Chỉ điều hướng đến trang InfoMoviePage mà không gọi API
+      router.push({ 
+        name: 'InfoMoviePage', // Đặt tên route tương ứng
+        params: { id: props.movie.id } // Truyền ID phim làm tham số
+      });
     };
-  }
+
+    return {
+      hover,
+      goToMovieInfo,
+    };
+  },
 };
 </script>
 

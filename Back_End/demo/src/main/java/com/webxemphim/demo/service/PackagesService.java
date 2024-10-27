@@ -22,7 +22,6 @@ public class PackagesService {
 
     // Thêm gói dịch vụ
     public ResponseData addPackage(PackagesDTO packagesDTO) {
-        ResponseData responseData = new ResponseData();
 
         try {
             // Kiểm tra xem packageName đã tồn tại chưa
