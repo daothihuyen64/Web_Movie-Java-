@@ -3,6 +3,7 @@ package com.webxemphim.demo.service;
 import com.webxemphim.demo.dto.GenreDTO;
 import com.webxemphim.demo.dto.SimpleGenreDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
+import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Genre;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.GenreInterface;
@@ -28,15 +29,16 @@ public class GenreService {
         Optional<Genre> genre = genreRepository.findById(genreId);
 
         if (genre.isPresent()) {
+            Genre foundGenre = genre.get(); 
             // Lấy danh sách movie của genre, lọc các phim có status != 0 và ánh xạ sang SimpleMovieDTO
-            List<SimpleMovieDTO> movieDTOList = genre.get().getMovieList().stream()
+            List<SimpleMovieDTO> movieDTOList = foundGenre.getMovieList().stream()
                     .filter(movie -> movie.getStatus() != 0) // Chỉ lấy các phim có status != 0
                     .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
                     .collect(Collectors.toList());
 
             // Đóng gói dữ liệu thành GenreDTO
             // Trả về ResponseData thành công với dữ liệu GenreDTO
-            GenreDTO genreDTO = modelMapper.map(genre, GenreDTO.class);
+            GenreDTO genreDTO = modelMapper.map(foundGenre, GenreDTO.class);
             genreDTO.setMovieList(movieDTOList);
 
             return new ResponseData(200, true, "Đã lấy thể loại thành công!", genreDTO);

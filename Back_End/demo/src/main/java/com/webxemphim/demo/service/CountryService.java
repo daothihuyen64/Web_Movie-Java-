@@ -25,21 +25,23 @@ public class CountryService {
 
     public ResponseData getCountryById(int countryId) {
         Optional<Country> country = countryRepository.findById(countryId);
-
+    
         if (country.isPresent()) {
+            Country foundCountry = country.get(); // Lấy Country từ Optional
+    
             // Lấy danh sách movie của country, lọc phim có status != 0 và ánh xạ sang SimpleMovieDTO
-            List<SimpleMovieDTO> movieDTOList = country.get().getMovieList().stream()
-                    .filter(movie -> movie.getStatus() != 0) // Lọc các phim có status khác 0
+            List<SimpleMovieDTO> movieDTOList = foundCountry.getMovieList().stream()
+                    .filter(movie -> movie.getStatus() != 0)
                     .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
                     .collect(Collectors.toList());
-
+    
             // Đóng gói dữ liệu thành CountryDTO
+            CountryDTO countryDTO = modelMapper.map(foundCountry, CountryDTO.class);
+            countryDTO.setMovieList(movieDTOList);
+    
             // Trả về ResponseData thành công với dữ liệu CountryDTO
-            CountryDTO countryDTO = modelMapper.map(country, CountryDTO.class);
-                countryDTO.setMovieList(movieDTOList);
             return new ResponseData(200, true, "Đã lấy quốc gia thành công!", countryDTO);
-        } 
-        else {
+        } else {
             // Nếu không tìm thấy country, trả về ResponseData với lỗi
             return new ResponseData(404, false, "Không tìm thấy quốc gia!", null);
         }

@@ -3,6 +3,7 @@ package com.webxemphim.demo.service;
 import com.webxemphim.demo.dto.ReleaseYearDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.dto.SimpleReleaseYearDTO;
+import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Release_Year;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.ReleaseYearInterface;
@@ -25,6 +26,7 @@ public class ReleaseYearService {
 
     public ResponseData getAllReleaseYear() {
         List<Release_Year> years = releaseYearRepository.findAll(); // Lấy danh sách tất cả thể loại
+
 
         List<SimpleReleaseYearDTO> yearDTOs = years.stream()
                 .map(year -> {
@@ -91,12 +93,13 @@ public class ReleaseYearService {
         Optional<Release_Year> releaseYear = releaseYearRepository.findById(releaseYearId);
 
         if (releaseYear.isPresent()) {
-            List<SimpleMovieDTO> movieDTOList = releaseYear.get().getMovieList().stream()
+            Release_Year foundYear = releaseYear.get(); 
+            List<SimpleMovieDTO> movieDTOList = foundYear.getMovieList().stream()
                     .filter(movie -> movie.getStatus() != 0)
                     .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
                     .collect(Collectors.toList());
 
-            ReleaseYearDTO releaseYearDTO = modelMapper.map(releaseYear, ReleaseYearDTO.class);
+            ReleaseYearDTO releaseYearDTO = modelMapper.map(foundYear, ReleaseYearDTO.class);
             releaseYearDTO.setMovies(movieDTOList);
             return new ResponseData(200, true, "Đã lấy năm phát hành thành công!", releaseYearDTO);
         }
