@@ -84,13 +84,15 @@ public class EpisodeService {
                 if (optionalEpisode.isPresent()) {
                     Episode episode = optionalEpisode.get();
                     Movie movie = episode.getMovie();
-    
+                    
                     // Tăng lượt xem của bộ phim
                     movie.setViews(movie.getViews() + 1);
                     movieRepository.save(movie);  // Lưu lại bộ phim sau khi tăng lượt xem
-    
+                    
+                    // Map Episode sang EpisodeDTO để lấy URL
+                    EpisodeDTO episodeDTO = modelMapper.map(episode, EpisodeDTO.class);
                     // Nếu tồn tại giao dịch hợp lệ, cho phép phát tập phim
-                    return new ResponseData(HttpStatus.OK.value(), true, "Phát tập phim thành công và tăng lượt xem cho bộ phim!", transactionDTO);
+                    return new ResponseData(HttpStatus.OK.value(), true, "Phát tập phim thành công và tăng lượt xem cho bộ phim!", episodeDTO.getEpisodeUrl());
                 } else {
                     return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Tập phim không tồn tại!", null);
                 }
@@ -102,6 +104,7 @@ public class EpisodeService {
             return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Lỗi khi phát tập phim: " + e.getMessage(), null);
         }
     }
+    
 
     public ResponseData updateUrlEpisode(int episodeId, EpisodeDTO episodeDTO) {
         try {
@@ -135,4 +138,5 @@ public class EpisodeService {
             return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false,"Lỗi khi cập nhật URL tập phim: " + e.getMessage(), null);
         }
     }
+
 }
