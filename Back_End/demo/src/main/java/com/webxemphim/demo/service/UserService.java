@@ -75,22 +75,30 @@ public class UserService implements UserServiceImp{
         ResponseData responseData = new ResponseData();
         User user = userRepository.findById(userId).orElse(null);
 
-        if (!passwordEncoder.matches(updateUserDTO.getOldPassword(), user.getPassword())) {
-            responseData.setDesc("Mật khẩu không đúng.");
-            responseData.setSuccess(false);
-            return  responseData; 
+        if(updateUserDTO.getPassword() != null && updateUserDTO.getOldPassword() != null) {
+
+            if (!passwordEncoder.matches(updateUserDTO.getOldPassword(), user.getPassword())) {
+                responseData.setDesc("Mật khẩu không đúng.");
+                responseData.setSuccess(false);
+                return  responseData; 
+            }
+    
+            if (!updateUserDTO.getPassword().equals(updateUserDTO.getConfirmPassword())) {
+                responseData.setDesc("Mật khẩu mới không khớp.");
+                responseData.setSuccess(false);
+                return responseData; 
+            }
+
+            user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword()));  
         }
 
-        if (!updateUserDTO.getPassword().equals(updateUserDTO.getConfirmPassword())) {
-            responseData.setDesc("Mật khẩu mới không khớp.");
-            responseData.setSuccess(false);
-            return responseData; 
+        if(updateUserDTO.getNickname() != null) {
+            user.setNickName(updateUserDTO.getNickname());
         }
 
-        user.setNickName(updateUserDTO.getNickname());
-        user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword())); 
         userRepository.save(user);
-
+        responseData.setDesc("Cập nhật thông tin thành công.");   
+            
         return responseData;
     }
     
