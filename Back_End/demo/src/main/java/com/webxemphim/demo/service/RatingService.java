@@ -33,10 +33,7 @@ public class RatingService {
         ResponseData responseData = new ResponseData();
     
         if (user.isEmpty() || movie.isEmpty()) {
-            responseData.setDesc("Người dùng hoặc phim không tồn tại!");
-            responseData.setStatus(404);
-            responseData.setSuccess(false);
-            return responseData;
+            return new ResponseData(404, false, "Người dùng hoặc phim không tồn tại!", null);
         }
         
         // Kiểm tra nếu movie có status = 0 thì không cho phép đánh giá

@@ -41,7 +41,7 @@ public class PackagesService {
             return new ResponseData(200, true, "Thêm gói thành công!", convertToDTO(savedPackage));
         } 
         catch (Exception e) {
-            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Thêm gói thành công!", null);
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Thêm gói thất bại!", null);
         }
     }
 

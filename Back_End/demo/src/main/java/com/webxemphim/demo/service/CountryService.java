@@ -24,36 +24,30 @@ public class CountryService {
     private ModelMapper modelMapper;
 
     public ResponseData getCountryById(int countryId) {
-        ResponseData responseData = new ResponseData();
-
         Optional<Country> country = countryRepository.findById(countryId);
-
+    
         if (country.isPresent()) {
+            Country foundCountry = country.get(); // Lấy Country từ Optional
+    
             // Lấy danh sách movie của country, lọc phim có status != 0 và ánh xạ sang SimpleMovieDTO
-            List<SimpleMovieDTO> movieDTOList = country.get().getMovieList().stream()
-                    .filter(movie -> movie.getStatus() != 0) // Lọc các phim có status khác 0
+            List<SimpleMovieDTO> movieDTOList = foundCountry.getMovieList().stream()
+                    .filter(movie -> movie.getStatus() != 0)
                     .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
                     .collect(Collectors.toList());
-
+    
             // Đóng gói dữ liệu thành CountryDTO
+            CountryDTO countryDTO = modelMapper.map(foundCountry, CountryDTO.class);
+            countryDTO.setMovieList(movieDTOList);
+    
             // Trả về ResponseData thành công với dữ liệu CountryDTO
-            CountryDTO countryDTO = modelMapper.map(country, CountryDTO.class);
-                countryDTO.setMovieList(movieDTOList);
-                responseData.setData(countryDTO);
-            responseData.setDesc("Đã lấy quốc gia thành công!");
-            responseData.setData(countryDTO);
-        } 
-        else {
+            return new ResponseData(200, true, "Đã lấy quốc gia thành công!", countryDTO);
+        } else {
             // Nếu không tìm thấy country, trả về ResponseData với lỗi
-            responseData.setStatus(404);
-            responseData.setSuccess(false);
-            responseData.setDesc("Không tìm thấy quốc gia!");
+            return new ResponseData(404, false, "Không tìm thấy quốc gia!", null);
         }
-
-        return responseData;
     }
+
     public ResponseData getAllCountry() {
-        ResponseData responseData = new ResponseData();
         List<Country> countries = countryRepository.findAll(); // Lấy danh sách tất cả thể loại
 
         List<SimpleCountryDTO> countryDTOs = countries.stream()
@@ -64,9 +58,6 @@ public class CountryService {
                     return countryDTO;
                 })
                 .collect(Collectors.toList());
-
-        responseData.setData(countryDTOs);
-        responseData.setDesc("Lấy tất cả các quốc gia thành công!");
-        return responseData;
+        return new ResponseData(200, true, "Lấy tất cả các quốc gia thành công!", countryDTOs);
     }
 }

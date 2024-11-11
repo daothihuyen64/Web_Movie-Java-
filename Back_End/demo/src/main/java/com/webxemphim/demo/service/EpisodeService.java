@@ -36,8 +36,6 @@ public class EpisodeService {
 
     // Hàm thêm tập phim
     public ResponseData addEpisode(EpisodeDTO episodeDTO) {
-        ResponseData responseData = new ResponseData();
-
         try {
             // Kiểm tra xem bộ phim có tồn tại không
             Optional<Movie> optionalMovie = movieRepository.findById(episodeDTO.getMovieId());
@@ -46,19 +44,13 @@ public class EpisodeService {
 
                 // Kiểm tra nếu phim có status = 0 thì không cho thêm tập
                 if (movie.getStatus() == 0) {
-                    responseData.setStatus(HttpStatus.BAD_REQUEST.value());
-                    responseData.setSuccess(false);
-                    responseData.setDesc("Không thể thêm tập cho phim đã bị vô hiệu hóa!");
-                    return responseData;
+                    return new ResponseData(HttpStatus.BAD_REQUEST.value(), false, "Không thể thêm tập cho phim đã bị vô hiệu hóa!", null);
                 }
 
                 // Kiểm tra xem tập phim với episodeNumber và movieId đã tồn tại chưa
                 Optional<Episode> existingEpisode = episodeRepository.findByEpisodeNumberAndMovieId(episodeDTO.getEpisodeNumber(), episodeDTO.getMovieId());
                 if (existingEpisode.isPresent()) {
-                    responseData.setStatus(HttpStatus.CONFLICT.value());
-                    responseData.setSuccess(false);
-                    responseData.setDesc("Tập phim này đã tồn tại!");
-                    return responseData;
+                    return new ResponseData(HttpStatus.CONFLICT.value(), false, "Tập phim này đã tồn tại!", null);
                 }
 
                 // Ánh xạ từ EpisodeDTO sang Entity Episode
@@ -68,24 +60,16 @@ public class EpisodeService {
                 // Lưu tập phim vào database
                 episodeRepository.save(episode);
 
-                responseData.setData(episodeDTO);
-                responseData.setDesc("Thêm tập phim thành công!");
+                return new ResponseData(200, true, "Thêm tập phim thành công!", episodeDTO);
             } else {
-                responseData.setStatus(HttpStatus.NOT_FOUND.value());
-                responseData.setSuccess(false);
-                responseData.setDesc("Bộ phim không tồn tại!");
+                return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Bộ phim không tồn tại!", null);
             }
         } catch (Exception e) {
-            responseData.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            responseData.setSuccess(false);
-            responseData.setDesc("Lỗi khi thêm tập phim: " + e.getMessage());
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false,"Lỗi khi thêm tập phim: " + e.getMessage(), null);
         }
-
-        return responseData;
     }
 
     public ResponseData startEpisode(int userId, int episodeId) {
-        ResponseData responseData = new ResponseData();
         try {
             // Lấy danh sách các giao dịch hợp lệ của user, sắp xếp theo endDate giảm dần
             List<Transaction> validTransactions = transactionRepository.findValidTransactions(userId, new Date(System.currentTimeMillis()));
@@ -100,39 +84,29 @@ public class EpisodeService {
                 if (optionalEpisode.isPresent()) {
                     Episode episode = optionalEpisode.get();
                     Movie movie = episode.getMovie();
-    
+                    
                     // Tăng lượt xem của bộ phim
                     movie.setViews(movie.getViews() + 1);
                     movieRepository.save(movie);  // Lưu lại bộ phim sau khi tăng lượt xem
-    
+                    
+                    // Map Episode sang EpisodeDTO để lấy URL
+                    EpisodeDTO episodeDTO = modelMapper.map(episode, EpisodeDTO.class);
                     // Nếu tồn tại giao dịch hợp lệ, cho phép phát tập phim
-                    responseData.setSuccess(true);
-                    responseData.setStatus(HttpStatus.OK.value());
-                    responseData.setDesc("Phát tập phim thành công và tăng lượt xem cho bộ phim!");
-                    responseData.setData(transactionDTO);
+                    return new ResponseData(HttpStatus.OK.value(), true, "Phát tập phim thành công và tăng lượt xem cho bộ phim!", episodeDTO.getEpisodeUrl());
                 } else {
-                    responseData.setSuccess(false);
-                    responseData.setStatus(HttpStatus.NOT_FOUND.value());
-                    responseData.setDesc("Tập phim không tồn tại.");
+                    return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Tập phim không tồn tại!", null);
                 }
             } else {
                 // Nếu không tồn tại giao dịch hợp lệ, báo lỗi
-                responseData.setSuccess(false);
-                responseData.setStatus(HttpStatus.FORBIDDEN.value());
-                responseData.setDesc("Giao dịch của bạn đã hết hạn hoặc không tồn tại.");
+                return new ResponseData(HttpStatus.FORBIDDEN.value(), false, "Giao dịch của bạn đã hết hạn hoặc không tồn tại!", null);
             }
         } catch (Exception e) {
-            responseData.setSuccess(false);
-            responseData.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            responseData.setDesc("Lỗi khi phát tập phim: " + e.getMessage());
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Lỗi khi phát tập phim: " + e.getMessage(), null);
         }
-    
-        return responseData;
     }
+    
 
     public ResponseData updateUrlEpisode(int episodeId, EpisodeDTO episodeDTO) {
-        ResponseData responseData = new ResponseData();
-    
         try {
             // Kiểm tra xem tập phim có tồn tại không
             Optional<Episode> optionalEpisode = episodeRepository.findById(episodeId);
@@ -142,14 +116,12 @@ public class EpisodeService {
     
                 // Kiểm tra nếu phim có status = 0 thì không cho sửa tập
                 if (movie.getStatus() == 0) {
-                    responseData.setStatus(HttpStatus.BAD_REQUEST.value());
-                    responseData.setSuccess(false);
-                    responseData.setDesc("Không thể sửa tập phim cho phim đã bị vô hiệu hóa!");
-                    return responseData;
+                    return new ResponseData(HttpStatus.BAD_REQUEST.value(), false, "Không thể sửa tập phim cho phim đã bị vô hiệu hóa!", null);
                 }
     
                 // Cập nhật thông tin URL từ EpisodeDTO
-                episode.setEpisodeUrl(episodeDTO.getEpisodeUrl());
+                if(episodeDTO.getEpisodeUrl() != null)episode.setEpisodeUrl(episodeDTO.getEpisodeUrl());
+                if(episodeDTO.getEpisodeNumber() != 0)episode.setEpisodeNumber(episodeDTO.getEpisodeNumber());
                 episodeRepository.save(episode);
     
                 // Tạo đối tượng DTO để trả về
@@ -158,21 +130,13 @@ public class EpisodeService {
                 updatedDTO.setEpisodeUrl(episode.getEpisodeUrl());
                 updatedDTO.setMovieId(movie.getId());
     
-                responseData.setSuccess(true);
-                responseData.setStatus(HttpStatus.OK.value());
-                responseData.setDesc("Cập nhật URL tập phim thành công!");
-                responseData.setData(updatedDTO);
+                return new ResponseData(HttpStatus.OK.value(), true, "Cập nhật URL tập phim thành công!", updatedDTO);
             } else {
-                responseData.setStatus(HttpStatus.NOT_FOUND.value());
-                responseData.setSuccess(false);
-                responseData.setDesc("Tập phim không tồn tại!");
+                return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Tập phim không tồn tại!", null);
             }
         } catch (Exception e) {
-            responseData.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            responseData.setSuccess(false);
-            responseData.setDesc("Lỗi khi cập nhật URL tập phim: " + e.getMessage());
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false,"Lỗi khi cập nhật URL tập phim: " + e.getMessage(), null);
         }
-    
-        return responseData;
     }
+
 }
