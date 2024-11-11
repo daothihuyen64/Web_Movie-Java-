@@ -5,9 +5,13 @@ import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.service.MovieService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/movies")
@@ -57,4 +61,16 @@ public class MovieController {
         ResponseData responseData = movieService.startTrailer(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    @GetMapping("/trending")
+    public ResponseEntity<?> trendingMovies() {
+        ResponseData responseData = movieService.trendingMovie();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
+    @GetMapping("/new-releases")
+    public ResponseEntity<?> newReleaseMovies() {
+        ResponseData responseData = movieService.newReleaseMovie();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 }

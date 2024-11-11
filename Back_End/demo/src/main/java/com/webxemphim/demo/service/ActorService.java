@@ -52,7 +52,6 @@ public class ActorService {
 
 
     public ResponseData getActor(int id){
-        ResponseData responseData = new ResponseData();
         try {
             Optional<Actor> optionalActor = actorRepository.findById(id);
             if(optionalActor.isPresent()){
@@ -66,21 +65,15 @@ public class ActorService {
     
                 ActorDTO actorDTO = modelMapper.map(actor, ActorDTO.class);
                 actorDTO.setMovies(movies);
-                responseData.setData(actorDTO);
-                responseData.setDesc("Lấy thông tin diễn viên thành công!");
+                return new ResponseData(200, true, "Lấy thông tin diễn viên thành công!", actorDTO);
             } 
             else{
-                responseData.setStatus(HttpStatus.NOT_FOUND.value());
-                responseData.setSuccess(false);
-                responseData.setDesc("Diễn viên không tồn tại!");
+                return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Diễn viên không tồn tại!", null);
             }
         }
         catch(Exception e){
-            responseData.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            responseData.setSuccess(false);
-            responseData.setDesc("Lỗi khi lấy thông tin diễn viên: " + e.getMessage());
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Lỗi khi lấy thông tin diễn viên: " + e.getMessage(), null);
         }
-        return responseData;
     }
 
 

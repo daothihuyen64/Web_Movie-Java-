@@ -131,13 +131,13 @@ public class MovieService {
     
     
         // Cập nhật thông tin từ DTO vào Entity
-        movie.setMovieName(movieDTO.getMovieName());
-        movie.setPoster(movieDTO.getPoster());
-        movie.setTrailer(movieDTO.getTrailer());
-        movie.setDescription(movieDTO.getDescription());
-        movie.setDirector(movieDTO.getDirector());
-        movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
-        movie.setViews(movieDTO.getViews());
+        if(movieDTO.getMovieName() != null) movie.setMovieName(movieDTO.getMovieName());
+        if(movieDTO.getPoster() != null) movie.setPoster(movieDTO.getPoster());
+        if(movieDTO.getTrailer() != null) movie.setTrailer(movieDTO.getTrailer());
+        if(movieDTO.getDescription() != null) movie.setDescription(movieDTO.getDescription());
+        if(movieDTO.getDirector() != null) movie.setDirector(movieDTO.getDirector());
+        if(movieDTO.getTotalEpisodes() != 0) movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
+        if(movieDTO.getViews() != 0) movie.setViews(movieDTO.getViews());
         movie.setStatus(1); // Giữ status là 1 khi cập nhật
     
         // Cập nhật Genre
@@ -226,4 +226,25 @@ public class MovieService {
             return new ResponseData(404, false, e.getMessage(), null);
         }
     }
+
+    public ResponseData trendingMovie() {
+        List<SimpleMovieDTO> trendingMovies = movieRepository.findTop20ByOrderByViewsDesc()
+                .stream()
+                .filter(movie -> movie.getStatus() != 0) // Không trả về phim có status = 0
+                .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
+                .collect(Collectors.toList());
+    
+        return new ResponseData(200, true, "Lấy danh sách phim trending thành công!", trendingMovies);
+    }
+    
+    public ResponseData newReleaseMovie() {
+        List<SimpleMovieDTO> newMovies = movieRepository.findTop100ByOrderByIdDesc()
+                .stream()
+                .filter(movie -> movie.getStatus() != 0) // Không trả về phim có status = 0
+                .map(movie -> modelMapper.map(movie, SimpleMovieDTO.class))
+                .collect(Collectors.toList());
+    
+        return new ResponseData(200, true, "Lấy danh sách phim mới phát hành thành công!", newMovies);
+    }
+    
 }

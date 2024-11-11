@@ -20,6 +20,7 @@ import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UserDTO;
+import com.webxemphim.demo.dto.UpdateUserDTO;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.service.UserService;
 import com.webxemphim.demo.service.imp.UserServiceImp;
@@ -45,10 +46,9 @@ public class UserController {
     
     //Cập nhật thông tin User
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UpdateUserDTO updateUserDTO) {
 
-        ResponseData responseData = new ResponseData();
-        responseData.setSuccess(userService.updateUser(id, userDTO));
+        ResponseData responseData = userService.updateUser(id, updateUserDTO);
 
         return new ResponseEntity<>(responseData, HttpStatus.OK);
      

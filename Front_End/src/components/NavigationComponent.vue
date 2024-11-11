@@ -1,9 +1,41 @@
 <template>
   <nav class="navigation">
     <ul>
-      <li><router-link to="/the-loai">Thể Loại</router-link></li>
-      <li><router-link to="/quoc-gia">Quốc Gia</router-link></li>
-      <li><router-link to="/nam-phat-hanh">Năm Phát Hành</router-link></li>
+      <!-- Dropdown cho Thể Loại -->
+      <li class="dropdown" @click="toggleDropdown('genres')">
+        <a href="#">Thể Loại</a>
+        <div :class="{'dropdown-menu': true, 'active': activeDropdown === 'genres'}">
+          <div class="grid-container">
+            <div v-for="genre in genres" :key="genre.id" class="item">
+              <router-link :to="{ name: 'IdGenreMoviesPage', params: { genreId: genre.id } }" @click="handleGenreClick">{{ genre.genreName }}</router-link>
+            </div>
+          </div>
+        </div>
+      </li>
+      
+      <!-- Dropdown cho Quốc Gia -->
+      <li class="dropdown" @click="toggleDropdown('countries')">
+        <a href="#">Quốc Gia</a>
+        <div :class="{'dropdown-menu': true, 'active': activeDropdown === 'countries'}">
+          <div class="grid-container">
+            <div v-for="country in countries" :key="country.id" class="item">
+              <router-link :to="{ name: 'IdCountryMoviesPage', params: { countryId: country.id } }" @click="handleCountryClick">{{ country.countryName }}</router-link>
+            </div>
+          </div>
+        </div>
+      </li>
+      
+      <!-- Dropdown cho Năm phát hành -->
+      <li class="dropdown" @click="toggleDropdown('releaseYear')">
+        <a href="#">Năm phát hành</a>
+        <div :class="{'dropdown-menu': true, 'active': activeDropdown === 'releaseYear'}">
+          <div class="grid-container">
+            <div v-for="releaseYear in releaseYears" :key="releaseYear.id" class="item">
+              <router-link :to="{ name: 'IdReleaseYearMoviesPage', params: { releaseYearId: releaseYear.id } }" @click="handleReleaseYearClick">{{ releaseYear.year }}</router-link>
+            </div>
+          </div>
+        </div>
+      </li>
       <li><router-link to="/xep-hang">Xếp Hạng</router-link></li>
     </ul>
 
@@ -16,8 +48,6 @@
         @keyup.enter="handleSearch" 
       />
       <button @click="handleSearch">Tìm</button>
-
-      <!-- Nút để chọn tệp ảnh -->
       <button @click="triggerFileInput">Tải ảnh</button>
       <input
         type="file"
@@ -31,28 +61,91 @@
 </template>
 
 <script>
+import axios from '@/axios';
 export default {
   name: 'NavigationComponent',
   data() {
     return {
-      searchQuery: '', // Dữ liệu để tìm kiếm theo text
-      searchImage: null // Dữ liệu để tìm kiếm theo ảnh
+      releaseYears : [],
+      genres: [],
+      countries: [],
+      activeDropdown: null, // Xác định dropdown nào đang mở
+      searchQuery: '',
+      searchImage: null,
     };
   },
+
+  mounted() {
+    document.addEventListener('click', this.closeDropdownOnClickOutside);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.closeDropdownOnClickOutside);
+  },
+
+  created() {
+    this.fetchGenres();
+    this.fetchCountries();
+    this.fetchReleaseYears();
+  },
   methods: {
-    // Hàm tìm kiếm dựa trên text
+    async fetchGenres() {
+      try {
+        const response = await axios.get(`http://localhost:8080/api/genres`);
+        if (response.status === 200 && response.data.success) {
+          this.genres = response.data.data;
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy thông tin thể loại', error);
+      }
+    },
+    async fetchCountries() {
+      try {
+        const response = await axios.get(`http://localhost:8080/api/countries`);
+        if (response.status === 200 && response.data.success) {
+          this.countries = response.data.data;
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy thông tin quốc gia', error);
+      }
+    },
+    async fetchReleaseYears() {
+      try {
+        const response = await axios.get(`http://localhost:8080/api/releaseyear`);
+        if (response.status === 200 && response.data.success) {
+          this.releaseYears = response.data.data;
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy thông tin năm phát hành', error);
+      }
+    },
+    toggleDropdown(menu) {
+      this.activeDropdown = this.activeDropdown === menu ? null : menu;
+    },
+    closeDropdownOnClickOutside(event) {
+      if (this.activeDropdown && !this.$el.contains(event.target)) {
+        this.activeDropdown = null;
+      }
+    },
+    handleGenreClick(event) {
+      event.stopPropagation(); // Ngăn chặn việc đóng dropdown
+      this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
+    },
+    handleCountryClick(event) {
+      event.stopPropagation(); // Ngăn chặn việc đóng dropdown
+      this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
+    },
+    handleReleaseYearClick(event) {
+      event.stopPropagation(); // Ngăn chặn việc đóng dropdown
+      this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
+    },
     handleSearch() {
       if (this.searchQuery.trim() !== '') {
         this.$router.push({ name: 'search-results', query: { q: this.searchQuery } });
       }
     },
-    
-    // Kích hoạt thẻ input file khi người dùng bấm nút "Tải ảnh"
     triggerFileInput() {
       this.$refs.fileInput.click();
     },
-
-    // Hàm tìm kiếm dựa trên hình ảnh
     handleImageSearch(event) {
       const file = event.target.files[0];
       if (file) {
@@ -99,7 +192,6 @@ export default {
   color: #3498db;
 }
 
-/* CSS cho thanh tìm kiếm */
 .search-bar {
   display: flex;
   align-items: center;
@@ -110,10 +202,6 @@ export default {
   border: none;
   border-radius: 4px;
   margin-right: 10px;
-}
-
-.search-bar input[type="file"] {
-  display: none; /* Ẩn phần input chọn file */
 }
 
 .search-bar button {
@@ -129,4 +217,46 @@ export default {
   background-color: #ff9900;
 }
 
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 700px;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-top: 10px;
+}
+
+.dropdown-menu.active {
+  display: block;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.item {
+  background-color: #333;
+  padding: 8px;
+  border-radius: 5px;
+}
+
+.item a {
+  color: white;
+  text-decoration: none;
+}
+
+.item a:hover {
+  color: #3498db;
+  background-color: #555;
+}
 </style>

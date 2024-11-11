@@ -8,8 +8,6 @@ import java.time.LocalDate;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +15,7 @@ import com.webxemphim.demo.dto.FavoriteMovieDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
+import com.webxemphim.demo.dto.UpdateUserDTO;
 import com.webxemphim.demo.dto.UserDTO;
 import com.webxemphim.demo.entity.Favorite_Movie;
 import com.webxemphim.demo.entity.Movie;
@@ -72,15 +71,35 @@ public class UserService implements UserServiceImp{
 
     //Cập nhật thông tin User
     @Override
-    public boolean updateUser(int userId, UserDTO userDTO) {
-
+    public ResponseData updateUser(int userId, UpdateUserDTO updateUserDTO) {
+        ResponseData responseData = new ResponseData();
         User user = userRepository.findById(userId).orElse(null);
 
-        user.setNickName(userDTO.getNickName());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword())); 
-        userRepository.save(user);
+        if(updateUserDTO.getPassword() != null && updateUserDTO.getOldPassword() != null) {
 
-        return true;
+            if (!passwordEncoder.matches(updateUserDTO.getOldPassword(), user.getPassword())) {
+                responseData.setDesc("Mật khẩu không đúng.");
+                responseData.setSuccess(false);
+                return  responseData; 
+            }
+    
+            if (!updateUserDTO.getPassword().equals(updateUserDTO.getConfirmPassword())) {
+                responseData.setDesc("Mật khẩu mới không khớp.");
+                responseData.setSuccess(false);
+                return responseData; 
+            }
+
+            user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword()));  
+        }
+
+        if(updateUserDTO.getNickname() != null) {
+            user.setNickName(updateUserDTO.getNickname());
+        }
+
+        userRepository.save(user);
+        responseData.setDesc("Cập nhật thông tin thành công.");   
+            
+        return responseData;
     }
     
     //Tìm kiếm phim bằng tên phim 
