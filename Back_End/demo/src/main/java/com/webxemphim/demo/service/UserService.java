@@ -93,6 +93,11 @@ public class UserService implements UserServiceImp{
         }
 
         if(updateUserDTO.getNickname() != null) {
+            if (userRepository.existsByNickName(updateUserDTO.getNickname())) {
+                responseData.setDesc("Nickname đã tồn tại.");
+                responseData.setSuccess(false);
+                return responseData;
+            }
             user.setNickName(updateUserDTO.getNickname());
         }
 
