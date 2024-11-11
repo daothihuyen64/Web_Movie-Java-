@@ -10,6 +10,18 @@ const instance = axios.create({
   },
 });
 
+// Thiết lập header Authorization
+// axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
+
+instance.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+
 // Có thể thêm interceptor nếu cần
 instance.interceptors.response.use(
   response => response,

@@ -19,4 +19,10 @@ public class CountryController {
         ResponseData responseData = countryService.getCountryById(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+
+    @GetMapping
+    public ResponseEntity<ResponseData> getAllCountry() {
+        ResponseData responseData = countryService.getAllCountry();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }

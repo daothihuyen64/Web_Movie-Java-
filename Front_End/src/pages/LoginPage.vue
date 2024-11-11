@@ -52,10 +52,20 @@ export default {
 </script>
 
 <style scoped>
-.login-page {
+/* .login-page {
   max-width: 400px;
-  margin: 100px auto;
+  margin: 0px auto;
   padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+} */
+
+ .login-page {
+  max-width: 400px; /* Tăng chiều rộng tối đa để làm hộp lớn hơn */
+  width: 100%;      /* Đảm bảo hộp đăng nhập chiếm toàn bộ chiều rộng tối đa */
+  margin: 50px auto; /* Giảm margin trên để hộp căn giữa tốt hơn */
+  padding: 30px;     /* Tăng padding để tạo thêm khoảng trống bên trong hộp */
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);

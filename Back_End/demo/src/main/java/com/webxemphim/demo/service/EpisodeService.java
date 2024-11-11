@@ -84,37 +84,49 @@ public class EpisodeService {
         return responseData;
     }
 
-    //Hàm phát tập phim
     public ResponseData startEpisode(int userId, int episodeId) {
         ResponseData responseData = new ResponseData();
         try {
             // Lấy danh sách các giao dịch hợp lệ của user, sắp xếp theo endDate giảm dần
             List<Transaction> validTransactions = transactionRepository.findValidTransactions(userId, new Date(System.currentTimeMillis()));
-
+    
             if (!validTransactions.isEmpty()) {
                 // Lấy giao dịch mới nhất (giao dịch có endDate xa nhất)
                 Transaction latestTransaction = validTransactions.get(0);
                 TransactionDTO transactionDTO = modelMapper.map(latestTransaction, TransactionDTO.class);
-
-                // Nếu tồn tại giao dịch hợp lệ, cho phép phát tập phim
-                responseData.setSuccess(true);
-                responseData.setStatus(HttpStatus.OK.value());
-                responseData.setDesc("Phát tập phim thành công!");
-                responseData.setData(transactionDTO);
-            } 
-            else {
+    
+                // Lấy tập phim và bộ phim tương ứng
+                Optional<Episode> optionalEpisode = episodeRepository.findById(episodeId);
+                if (optionalEpisode.isPresent()) {
+                    Episode episode = optionalEpisode.get();
+                    Movie movie = episode.getMovie();
+    
+                    // Tăng lượt xem của bộ phim
+                    movie.setViews(movie.getViews() + 1);
+                    movieRepository.save(movie);  // Lưu lại bộ phim sau khi tăng lượt xem
+    
+                    // Nếu tồn tại giao dịch hợp lệ, cho phép phát tập phim
+                    responseData.setSuccess(true);
+                    responseData.setStatus(HttpStatus.OK.value());
+                    responseData.setDesc("Phát tập phim thành công và tăng lượt xem cho bộ phim!");
+                    responseData.setData(transactionDTO);
+                } else {
+                    responseData.setSuccess(false);
+                    responseData.setStatus(HttpStatus.NOT_FOUND.value());
+                    responseData.setDesc("Tập phim không tồn tại.");
+                }
+            } else {
                 // Nếu không tồn tại giao dịch hợp lệ, báo lỗi
                 responseData.setSuccess(false);
                 responseData.setStatus(HttpStatus.FORBIDDEN.value());
                 responseData.setDesc("Giao dịch của bạn đã hết hạn hoặc không tồn tại.");
             }
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             responseData.setSuccess(false);
             responseData.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             responseData.setDesc("Lỗi khi phát tập phim: " + e.getMessage());
         }
-
+    
         return responseData;
     }
 

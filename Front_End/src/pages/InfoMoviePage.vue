@@ -1,57 +1,60 @@
 <template>
-  <div class="info-movie-page">
+  <div v-if="!movieDataFound" class="error-message">
+      <p>Không tìm thấy phim hoặc phim đã bị ẩn!</p>
+  </div>
+  <div v-if="movieDataFound" class="info-movie-page">
     <Notification
       v-if="notificationVisible"
       :message="notificationMessage"
       :type="notificationType"
       @close="notificationVisible = false"
     />
-    <div class="left-section">
-      <img v-if="movieData.poster" :src="movieData.poster" alt="Poster" />
-    </div>
-    <div class="right-section">
-      <h2 v-if="movieData.movieName">{{ movieData.movieName }}</h2>
-      <p class="episode-info">{{ movieData.totalEpisodes }} Tập</p>
-      <p v-if="movieData.country && movieData.country.countryName">{{ movieData.release_year.year }} · {{ movieData.country.countryName }}</p>
-      <p v-if="movieData.director">
-        <strong>Đạo diễn:</strong> {{ movieData.director }}
-      </p>
-      <p v-if="movieData.genre && movieData.genre.genreName">
-        <strong>Thể Loại:</strong> {{ movieData.genre.genreName }}
-      </p>
-      <p v-if="movieData.ratingMean">
-        <strong>Đánh giá: </strong>
-        <span
-          v-for="star in 10"
-          :key="star"
-          class="rating-star"
-          :class="{ filled: isStarFilled(star) }"
-          @mouseover="hoveredStar = star"
-          @mouseleave="hoveredStar = null"
-          @click="rateMovie(star)"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="star-icon">
-            <path d="M12 .587l3.668 7.43 8.292 1.207-6.004 5.869 1.417 8.267L12 18.897l-7.373 3.872 1.417-8.267-6.004-5.869 8.292-1.207z" />
-          </svg>
-        </span>
-        <span>{{ movieData.ratingMean }}/10</span>
-      </p>
-      <p v-if="movieData.views">
-        <strong>Lượt xem : </strong> {{ movieData.views }}
-      </p>
-      <div class="button-group">
-        <button class="watch-now-btn">Xem Ngay</button>
-        <button class="follow-btn" @click="addToFavorites">+ Thêm phim yêu thích</button>
+      <div class="left-section">
+        <img v-if="movieData.poster" :src="movieData.poster" alt="Poster" />
       </div>
-    </div>
+      <div class="right-section">
+        <h2 v-if="movieData.movieName">{{ movieData.movieName }}</h2>
+        <p class="episode-info">{{ movieData.totalEpisodes }} Tập</p>
+        <p v-if="movieData.country && movieData.country.countryName">{{ movieData.release_year.year }} · {{ movieData.country.countryName }}</p>
+        <p v-if="movieData.director">
+          <strong>Đạo diễn:</strong> {{ movieData.director }}
+        </p>
+        <p v-if="movieData.genre && movieData.genre.genreName">
+          <strong>Thể Loại:</strong> {{ movieData.genre.genreName }}
+        </p>
+        <p v-if="movieData.ratingMean">
+          <strong>Đánh giá: </strong>
+          <span
+            v-for="star in 10"
+            :key="star"
+            class="rating-star"
+            :class="{ filled: isStarFilled(star) }"
+            @mouseover="hoveredStar = star"
+            @mouseleave="hoveredStar = null"
+            @click="rateMovie(star)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="star-icon">
+              <path d="M12 .587l3.668 7.43 8.292 1.207-6.004 5.869 1.417 8.267L12 18.897l-7.373 3.872 1.417-8.267-6.004-5.869 8.292-1.207z" />
+            </svg>
+          </span>
+          <span>{{ movieData.ratingMean }}/10</span>
+        </p>
+        <p v-if="movieData.views">
+          <strong>Lượt xem : </strong> {{ movieData.views }}
+        </p>
+        <div class="button-group">
+          <button class="watch-now-btn">Xem Ngay</button>
+          <button class="follow-btn" @click="addToFavorites">+ Thêm phim yêu thích</button>
+        </div>
+      </div>
   </div>
 
-  <div class="summary-section">
+  <div v-if="movieDataFound" class="summary-section">
     <h3>Tóm Tắt</h3>
     <p v-if="movieData.description">{{ movieData.description }}</p>
   </div>
 
-  <div class="trailer-section">
+  <div v-if="movieDataFound" class="trailer-section">
     <h3>Trailer</h3>
     <iframe
       v-if="isValidURL(movieData.trailer)"
@@ -86,6 +89,7 @@ export default {
       notificationVisible: false,
       notificationMessage: '',
       notificationType : 'success',
+      movieDataFound: true,
     };
   },
   computed: {
@@ -100,6 +104,10 @@ export default {
         const response = await axios.get(`http://localhost:8080/movies/${this.$route.params.id}`);
         if (response.status === 200 && response.data.success) {
           this.movieData = response.data.data;
+          this.movieDataFound = true; 
+        } else {
+          this.movieDataFound = false; // Phim không tìm thấy
+          // this.showNotification(response.data.desc || 'Không tìm thấy phim hoặc phim đã bị ẩn!', 'error');
         }
       } catch (error) {
         console.error("Lỗi khi lấy thông tin phim", error);
@@ -254,5 +262,11 @@ button {
 
 .trailer-section {
   margin-top: 20px;
+}
+.error-message {
+  display: block; /* hoặc inline-block nếu bạn cần */
+  width: 100%; /* Đảm bảo rằng nó không làm giảm chiều rộng của container */
+  margin-bottom: 20px; /* Khoảng cách giữa thông báo và phần tử bên dưới */
+  color: red; /* Màu sắc cho thông báo lỗi */
 }
 </style>
