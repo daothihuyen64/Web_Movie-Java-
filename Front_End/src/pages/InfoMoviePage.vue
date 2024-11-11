@@ -68,6 +68,28 @@
     ></iframe>
     <p v-else>No Trailer</p>
   </div>
+  <div class="comments-section">
+    <h3>{{ comments.length }} bình luận</h3>
+    <div class="comment-input">
+      <input v-model="newComment" placeholder="Viết bình luận..." />
+      <button @click="postComment">Đăng</button>
+    </div>
+    <div v-for="comment in comments" :key="comment.id" class="comment">
+      <div class="comment-header">
+        <span class="nickname">{{ comment.nickName }}</span>
+        <span class="time">{{ formatTime(comment.time) }}</span>
+      </div>
+      <p class="content">{{ comment.content }}</p>
+      <div class="comment-actions" v-if="comment.reactions">
+        <span v-for="emoji in ['ANGRY', 'HEART', 'SURPRISED', 'THUMBS_UP']" 
+              :key="emoji"
+              @click="reactToComment(comment.id, emoji)">
+          {{ comment.reactions[emoji] || 0 }} {{ getEmoji(emoji) }}
+        </span>
+        <span v-if="comment.nickName === this.nickname" @click="deleteComment(comment.id)">Xóa bình luận</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -90,15 +112,110 @@ export default {
       notificationMessage: '',
       notificationType : 'success',
       movieDataFound: true,
+      comments: [],
+      newComment: '',
+      currentUser: "", 
     };
   },
   computed: {
     ...mapGetters(['userId']), // Lấy userId từ Vuex store
+    ...mapGetters(['nickname']),
   },
   created() {
     this.fetchMovieData();
+    this.fetchComments();
   },
   methods: {
+    async fetchComments() {
+      try {
+        const response = await axios.get(`http://localhost:8080/comment/movie/${this.$route.params.id}`);
+        if (response.status === 200) {
+          this.comments = response.data;
+          await Promise.all(
+            this.comments.map(async (comment) => {
+              try {
+                const reactResponse = await axios.get(`http://localhost:8080/react/${comment.id}`);
+                if (reactResponse.status === 200) {
+                  const defaultReactions = { SURPRISED: 0, HEART: 0, THUMBS_UP: 0, ANGRY: 0 };
+                  comment.reactions = {
+                    ...defaultReactions,
+                    ...reactResponse.data
+                  };
+                } else {
+                  comment.reactions = { SURPRISED: 0, HEART: 0, THUMBS_UP: 0, ANGRY: 0 }; // Giá trị mặc định nếu lỗi
+                }
+              } catch (error) {
+                console.error("Lỗi khi lấy react cho bình luận", error);
+                comment.reactions = { SURPRISED: 0, HEART: 0, THUMBS_UP: 0, ANGRY: 0 }; // Giá trị mặc định nếu lỗi
+              }
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy bình luận", error);
+      }
+    },
+    async postComment() {
+      if (!this.newComment.trim()) return;
+      try {
+        const response = await axios.post(`http://localhost:8080/comment/add`, {
+          movieId: this.$route.params.id,
+          content: this.newComment,
+          userId: this.userId, // Giả sử bạn đã lấy userId từ Vuex
+        });
+        if (response.status === 200) {
+          this.newComment = '';
+          this.fetchComments(); // Load lại bình luận sau khi đăng
+        }
+      } catch (error) {
+        console.error("Lỗi khi đăng bình luận", error);
+      }
+    },
+    async deleteComment(commentId) {
+      try {
+        const response = await axios.delete(`http://localhost:8080/comment/delete/${commentId}`);
+        if (response.status === 200 && response.data.success) {
+          this.fetchComments();
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy bình luận", error);
+      }
+    },
+    async reactToComment(commentId, reactType) {
+      try {
+        // Bước 1: Xóa react cũ
+        const deleteResponse = await axios.delete(`http://localhost:8080/react/delete`, {
+          params: {
+            userId: this.userId,
+            commentId: commentId
+          }
+        });
+
+        if (deleteResponse.status === 200) {
+          console.log('Xóa react cũ thành công');
+
+          // Bước 2: Thêm react mới
+          const addResponse = await axios.post(`http://localhost:8080/react/add`, null, {
+            params: {
+              userId: this.userId,
+              commentId: commentId,
+              reactType: reactType
+            }
+          });
+
+          if (addResponse.status === 200 && addResponse.data.success) {
+            console.log('Thêm react mới thành công');
+            this.fetchComments(); // Load lại danh sách bình luận để cập nhật react
+          } else {
+            console.error('Thêm react mới thất bại');
+          }
+        } else {
+          console.error('Xóa react cũ thất bại');
+        }
+      } catch (error) {
+        console.error("Lỗi khi thêm/xóa react", error);
+      }
+    },
     async fetchMovieData() {
       try {
         const response = await axios.get(`http://localhost:8080/movies/${this.$route.params.id}`);
@@ -113,6 +230,7 @@ export default {
         console.error("Lỗi khi lấy thông tin phim", error);
       }
     },
+
     async rateMovie(star) {
       try {
         const response = await axios.post(
@@ -162,6 +280,20 @@ export default {
         '(#[-a-zA-Z\\d_]*)?$','i'); // fragment locator
       return !!pattern.test(url);
     },
+     formatTime(time) {
+      // Định dạng thời gian thành kiểu dễ đọc, ví dụ: 1 tuần trước
+      const date = new Date(time);
+      return date.toLocaleString("vi-VN", { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    },
+    getEmoji(reactType) {
+      const emojis = {
+        ANGRY: '😠',
+        HEART: '❤️',
+        SURPRISED: '😮',
+        THUMBS_UP: '👍'
+      };
+      return emojis[reactType] || '';
+    }
   },
 };
 </script>
@@ -268,5 +400,76 @@ button {
   width: 100%; /* Đảm bảo rằng nó không làm giảm chiều rộng của container */
   margin-bottom: 20px; /* Khoảng cách giữa thông báo và phần tử bên dưới */
   color: red; /* Màu sắc cho thông báo lỗi */
+}
+.comments-section {
+  margin-top: 20px;
+  background-color: #444;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.comment-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.comment-input input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.comment-input button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #e50914;
+  color: #fff;
+  cursor: pointer;
+}
+
+.comment {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #555;
+}
+
+.comment-header {
+  font-size: 0.9em;
+  color: #bbb;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nickname {
+  font-weight: bold;
+}
+
+.time {
+  font-size: 0.8em;
+  color: #888;
+}
+
+.content {
+  margin: 5px 0;
+}
+
+.comment-actions span {
+  color: #888;
+  cursor: pointer;
+  margin-right: 15px;
+}
+.comment-actions span:hover {
+  text-decoration: underline;
+}
+.comment-actions span {
+  font-size: 1.2em;
+  margin-right: 10px;
+  cursor: pointer;
+}
+.comment-actions span:hover {
+  transform: scale(1.2); /* Phóng to emoji khi hover */
 }
 </style>

@@ -26,7 +26,7 @@
          
           <div :class="{'dropdown-menu': true, 'active': isDropdownOpen}">
             <ul>
-              <li><router-link to="/transaction">Gói dịch vụ</router-link></li>
+              <li><router-link to="/packages">Gói dịch vụ</router-link></li>
               <li><router-link to="/favouriteMovies">Tủ phim yêu thích</router-link></li>
               <li><router-link to="/settings">Cài đặt</router-link></li>
               <li><a @click="logout">Đăng xuất</a></li>

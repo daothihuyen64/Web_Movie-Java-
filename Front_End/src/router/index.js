@@ -12,7 +12,7 @@ import IdGenreMoviesPage from '../pages/IdGenreMoviesPage.vue';
 import IdCountryMoviesPage from '../pages/IdCountryMoviesPage.vue';
 import IdReleaseYearMoviesPage from '../pages/IdReleaseYearMoviesPage.vue';
 import InfoMoviePage from '../pages/InfoMoviePage.vue';
-
+import PackagesPage from '../pages/PackagesPage.vue';
 const routes = [
   { path: '/', name : 'home',component: HomePage },  // Định nghĩa route cho HomePage
   { path: '/signin', name : 'login',component: LoginPage },
@@ -25,6 +25,7 @@ const routes = [
   { path: '/quoc-gia/:countryId', name: 'IdCountryMoviesPage', component: IdCountryMoviesPage, props: true},
   { path: '/nam-phat-hanh/:releaseYearId', name: 'IdReleaseYearMoviesPage', component: IdReleaseYearMoviesPage, props: true},
   { path: '/movie/:id', name: 'InfoMoviePage', component: InfoMoviePage, props: true},
+  { path: '/packages', name: 'packages', component: PackagesPage },
 ];
 
 const router = createRouter({

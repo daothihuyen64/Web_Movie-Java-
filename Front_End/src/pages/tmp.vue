@@ -1,258 +1,165 @@
 <template>
-  <div class="info-movie-page">
-    <Notification
-      v-if="notificationVisible"
-      :message="notificationMessage"
-      :type="notificationType"
-      @close="notificationVisible = false"
-    />
-    <div class="left-section">
-      <img v-if="movieData.poster" :src="movieData.poster" alt="Poster" />
+  <div class="settings-container">
+    <h2>Cài đặt tài khoản</h2>
+    
+    <!-- Thông tin người dùng (không cho chỉnh sửa) -->
+    <div class="form-group" v-for="(value, key) in filteredUserInfo" :key="key">
+      <label :for="key">{{ key }}:</label>
+      <input type="text" :value="value" :id="key" readonly />
     </div>
-    <div class="right-section">
-      <h2 v-if="movieData.movieName">{{ movieData.movieName }}</h2>
-      <p class="episode-info">{{ movieData.totalEpisodes }} Tập</p>
-      <p v-if="movieData.country && movieData.country.countryName">{{ movieData.release_year.year }} · {{ movieData.country.countryName }}</p>
-      <p v-if="movieData.director">
-        <strong>Đạo diễn:</strong> {{ movieData.director }}
-      </p>
-      <p v-if="movieData.genre && movieData.genre.genreName">
-        <strong>Thể Loại:</strong> {{ movieData.genre.genreName }}
-      </p>
-      <p v-if="movieData.ratingMean">
-        <strong>Đánh giá: </strong>
-        <span
-          v-for="star in 10"
-          :key="star"
-          class="rating-star"
-          :class="{ filled: isStarFilled(star) }"
-          @mouseover="hoveredStar = star"
-          @mouseleave="hoveredStar = null"
-          @click="rateMovie(star)"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="star-icon">
-            <path d="M12 .587l3.668 7.43 8.292 1.207-6.004 5.869 1.417 8.267L12 18.897l-7.373 3.872 1.417-8.267-6.004-5.869 8.292-1.207z" />
-          </svg>
-        </span>
-        <span>{{ movieData.ratingMean }}/10</span>
-      </p>
-      <p v-if="movieData.views">
-        <strong>Lượt xem : </strong> {{ movieData.views }}
-      </p>
-      <div class="button-group">
-        <button class="watch-now-btn">Xem Ngay</button>
-        <button class="follow-btn" @click="addToFavorites">+ Thêm phim yêu thích</button>
-      </div>
+
+    <!-- Chỉnh sửa nickname -->
+    <div class="form-group">
+      <label for="nickname">Nickname:</label>
+      <input
+        type="text"
+        v-model="nickname"
+        id="nickname"
+        :readonly="!editNickname"
+      />
+      <button @click="toggleEdit('nickname')">
+        {{ editNickname ? 'Lưu' : 'Chỉnh sửa' }}
+      </button>
     </div>
-  </div>
 
-  <div class="summary-section">
-    <h3>Tóm Tắt</h3>
-    <p v-if="movieData.description">{{ movieData.description }}</p>
-  </div>
-
-  <div class="trailer-section">
-    <h3>Trailer</h3>
-    <iframe
-      v-if="isValidURL(movieData.trailer)"
-      :src="movieData.trailer"
-      title="Trailer"
-      width="100%"
-      height="400"
-      frameborder="0"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-    ></iframe>
-    <p v-else>No Trailer</p>
+    <!-- Chỉnh sửa password -->
+    <div class="form-group">
+      <label for="password">Mật khẩu:</label>
+      <input
+        type="password"
+        v-model="oldPassword"
+        id="old-password"
+        v-if="editPassword"
+        placeholder="Nhập mật khẩu cũ"
+      />
+      <input
+        type="password"
+        v-model="newPassword"
+        id="new-password"
+        v-if="editPassword"
+        placeholder="Nhập mật khẩu mới"
+      />
+      <button @click="toggleEdit('password')">
+        {{ editPassword ? 'Lưu' : 'Chỉnh sửa' }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from '@/axios';
+import axios from '@/axios'; // Sử dụng axios đã cấu hình sẵn
 import { mapGetters } from 'vuex';
-import Notification from '../components/Notification.vue';
 
 export default {
-  name: 'InfoMoviePage',
-  components: {
-    Notification,
-  },
   data() {
     return {
-      movieData: {
-        ratingMean: 0,
-      },
-      hoveredStar: null, // Sao hiện đang được hover bởi người dùng
-      notificationVisible: false,
-      notificationMessage: '',
-      notificationType : 'success',
+      userInfo: {},        // Lưu tất cả thông tin user
+      nickname: '',
+      oldPassword: '',
+      newPassword: '',
+      editNickname: false, // Trạng thái chỉnh sửa nickname
+      editPassword: false  // Trạng thái chỉnh sửa mật khẩu
     };
   },
   computed: {
-    ...mapGetters(['userId']), // Lấy userId từ Vuex store
+    ...mapGetters(['userId']),
+    filteredUserInfo() {
+      const userCopy = { ...this.userInfo }; // Tạo một bản sao của userInfo
+      delete userCopy.nickName;
+      delete userCopy.id; // Xóa id khỏi đối tượng
+      delete userCopy.password; // Xóa password khỏi đối tượng
+      return userCopy; // Trả về thông tin còn lại
+    },
   },
   created() {
-    this.fetchMovieData();
+    // Lấy thông tin người dùng khi component được tạo
+    this.fetchUserInfo();
   },
   methods: {
-    async fetchMovieData() {
+    async fetchUserInfo() {
       try {
-        const response = await axios.get(`http://localhost:8080/movies/${this.$route.params.id}`);
-        if (response.status === 200 && response.data.success) {
-          this.movieData = response.data.data;
+        const response = await axios.get(`http://localhost:8080/user/getUser/${this.userId}`);
+        if (response.status === 200) {
+          this.userInfo = response.data;
+          this.nickname = this.userInfo.nickName;
         }
       } catch (error) {
-        console.error("Lỗi khi lấy thông tin phim", error);
+        console.error('Lỗi khi lấy thông tin người dùng', error);
       }
     },
-    async rateMovie(star) {
+    toggleEdit(field) {
+      if (field === 'nickname') {
+        if (this.editNickname) {
+          this.updateNickname();
+        }
+        this.editNickname = !this.editNickname;
+      } else if (field === 'password') {
+        if (this.editPassword) {
+          this.updatePassword();
+        }
+        this.editPassword = !this.editPassword;
+      }
+    },
+    async updateNickname() {
       try {
-        const response = await axios.post(
-          `http://localhost:8080/api/ratings/addOrUpdate?userId=${this.userId}&movieId=${this.$route.params.id}&star=${star}`
-        );
-        if (response.status === 200 && response.data.success) {
-          await this.fetchMovieData();
-          this.showNotification('Bạn đã đánh giá thành công!');
-          this.hoveredStar = null;
-          // alert(response.data.desc); // Hiển thị thông báo thành công
+        const updateData = { nickName: this.nickname };
+        const response = await axios.put(`http://localhost:8080/user/update/${this.userId}`, updateData);
+        if (response.data.success) {
+          this.$store.commit('SET_NICKNAME', this.nickname);
+          alert('Cập nhật nickname thành công');
+        } else {
+          alert('Cập nhật nickname thất bại');
         }
       } catch (error) {
-        console.error("Lỗi khi đánh giá phim", error);
+        console.error('Lỗi khi cập nhật nickname', error);
       }
     },
-    async addToFavorites() {
+    async updatePassword() {
       try {
-        const response = await axios.post('http://localhost:8080/user/favoriteMovie/add', {
-          userId: this.userId,
-          movieId: this.$route.params.id,
-        });
-        if (response.status === 200 && response.data.success) {
-          this.showNotification('Đã thêm phim vào danh sách yêu thích');
-        }
-        else{
-          this.showNotification(response.data.desc, 'error');
+        const updateData = { oldPassword: this.oldPassword, newPassword: this.newPassword };
+        const response = await axios.put(`http://localhost:8080/user/updatePassword/${this.userId}`, updateData);
+        if (response.data.success) {
+          alert('Cập nhật mật khẩu thành công');
+        } else {
+          alert('Mật khẩu cũ không đúng');
         }
       } catch (error) {
-        console.error("Lỗi khi thêm phim vào danh sách yêu thích", error);
+        console.error('Lỗi khi cập nhật mật khẩu', error);
       }
-    },
-    showNotification(message, type = 'success') {
-      this.notificationMessage = message;
-      this.notificationType = type;
-      this.notificationVisible = true;
-    },
-    isStarFilled(star) {
-      // Kiểm tra nếu `hoveredStar` tồn tại thì dùng nó, nếu không thì dùng `ratingMean`
-      const currentRating = this.hoveredStar !== null ? this.hoveredStar : this.movieData.ratingMean;
-      console.log(`Star: ${star}, Current Rating: ${currentRating}, Filled: ${star <= currentRating}`);
-      return star <= currentRating;
-    },
-    isValidURL(url) {
-      const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-        '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*))\\.?)+(:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*'+ // domain and port
-        '(\\?[;&a-zA-Z\\d%_.~+=-]*)?'+ // query string
-        '(#[-a-zA-Z\\d_]*)?$','i'); // fragment locator
-      return !!pattern.test(url);
     },
   },
 };
 </script>
 
 <style scoped>
-.info-movie-page {
-  display: flex;
-  gap: 20px;
+.settings-container {
   padding: 20px;
   background-color: #333;
   color: #fff;
 }
 
-.left-section {
-  flex: 1;
-  max-width: 250px;
+.form-group {
+  margin-bottom: 15px;
 }
 
-.left-section img {
+input {
+  padding: 8px;
   width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-.right-section {
-  flex: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  line-height: 0.3;
-}
-
-.right-section h2 {
-  font-size: 1.5em;
-  margin-bottom: 5px;
-}
-
-.episode-info {
-  background-color: #c5a880;
-  color: #000;
-  padding: 5px 10px;
-  border-radius: 4px;
-  width: fit-content;
-}
-
-.rating-star {
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-}
-
-.star-icon {
-  fill: #d1d1d1; /* Màu mặc định cho sao */
-}
-
-.rating-star.filled .star-icon {
-  fill: #ffd700; /* Màu cho sao đã đánh giá */
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 10px 15px;
+  background-color: #008CBA;
+  color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-.button-group button:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Hiệu ứng đổ bóng khi hover */
 }
 
-.watch-now-btn {
-  background-color: #e50914;
-  color: #fff;
-}
-
-.follow-btn {
-  background-color: #555;
-  color: #fff;
-}
-.watch-now-btn:hover {
-  background-color: #d40812b1; /* Màu nền đậm hơn khi hover */
-}
-
-.follow-btn:hover {
-  background-color: #444; /* Màu nền đậm hơn khi hover */
-}
-.summary-section {
-  background-color: #444;
-  padding: 15px;
-  border-radius: 5px;
-}
-
-.trailer-section {
-  margin-top: 20px;
+button:hover {
+  background-color: #005f75;
 }
 </style>

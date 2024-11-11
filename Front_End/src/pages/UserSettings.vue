@@ -1,7 +1,12 @@
 <template>
   <div class="settings-container">
     <h2>Cài đặt tài khoản</h2>
-    
+    <Notification
+      v-if="notificationVisible"
+      :message="notificationMessage"
+      :type="notificationType"
+      @close="notificationVisible = false"
+    />
     <!-- Thông tin người dùng (không cho chỉnh sửa) -->
     <div class="form-group" v-for="(value, key) in filteredUserInfo" :key="key">
       <label :for="key">{{ key }}:</label>
@@ -24,47 +29,67 @@
 
     <!-- Chỉnh sửa password -->
     <div class="form-group">
-      <label for="password">Mật khẩu:</label>
+      <label>Password:</label>
+    </div>
+
+    <div class="form-group" v-if="editPassword">
+      <label for="old-password">Mật khẩu cũ:</label>
       <input
         type="password"
         v-model="oldPassword"
         id="old-password"
-        v-if="editPassword"
         placeholder="Nhập mật khẩu cũ"
       />
+      <label for="new-password">Mật khẩu mới:</label>
       <input
         type="password"
         v-model="newPassword"
         id="new-password"
-        v-if="editPassword"
         placeholder="Nhập mật khẩu mới"
       />
+      <label for="confirm-password">Xác nhận mật khẩu mới:</label>
+      <input
+        type="password"
+        v-model="confirmPassword"
+        id="confirm-password"
+        placeholder="Xác nhận mật khẩu mới"
+      />
       <button @click="toggleEdit('password')">
-        {{ editPassword ? 'Lưu' : 'Chỉnh sửa' }}
+        Lưu
       </button>
     </div>
+    <button v-else @click="toggleEdit('password')">Chỉnh sửa mật khẩu</button>
   </div>
 </template>
 
 <script>
 import axios from '@/axios'; // Sử dụng axios đã cấu hình sẵn
 import { mapGetters } from 'vuex';
+import Notification from '../components/Notification.vue';
 
 export default {
+  components: {
+    Notification,
+  },
   data() {
     return {
       userInfo: {},        // Lưu tất cả thông tin user
       nickname: '',
       oldPassword: '',
       newPassword: '',
+      confirmPassword: '',
       editNickname: false, // Trạng thái chỉnh sửa nickname
-      editPassword: false  // Trạng thái chỉnh sửa mật khẩu
-    };
+      editPassword: false,   // Trạng thái chỉnh sửa mật khẩu
+      notificationType : 'success',
+      notificationMessage : '',
+      notificationVisible : false
+   };
   },
   computed: {
     ...mapGetters(['userId']),
     filteredUserInfo() {
       const userCopy = { ...this.userInfo }; // Tạo một bản sao của userInfo
+      delete userCopy.nickName;
       delete userCopy.id; // Xóa id khỏi đối tượng
       delete userCopy.password; // Xóa password khỏi đối tượng
       return userCopy; // Trả về thông tin còn lại
@@ -80,7 +105,7 @@ export default {
         const response = await axios.get(`http://localhost:8080/user/getUser/${this.userId}`);
         if (response.status === 200) {
           this.userInfo = response.data;
-          this.nickname = this.userInfo.nickName;
+          this.nickname = this.userInfo.nickName; // Giả định nickname trong userInfo
         }
       } catch (error) {
         console.error('Lỗi khi lấy thông tin người dùng', error);
@@ -101,13 +126,13 @@ export default {
     },
     async updateNickname() {
       try {
-        const updateData = { nickName: this.nickname };
+        const updateData = { nickname: this.nickname }; // Cập nhật trường nickname
         const response = await axios.put(`http://localhost:8080/user/update/${this.userId}`, updateData);
         if (response.data.success) {
-          this.$store.commit('SET_NICKNAME', this.nickname);
-          alert('Cập nhật nickname thành công');
+          this.$store.commit('SET_nickname', this.nickname);
+          this.showNotification(response.data.desc, 'success');
         } else {
-          alert('Cập nhật nickname thất bại');
+          this.showNotification(response.data.desc, 'error');
         }
       } catch (error) {
         console.error('Lỗi khi cập nhật nickname', error);
@@ -115,16 +140,25 @@ export default {
     },
     async updatePassword() {
       try {
-        const updateData = { oldPassword: this.oldPassword, newPassword: this.newPassword };
-        const response = await axios.put(`http://localhost:8080/user/updatePassword/${this.userId}`, updateData);
+        const updateData = {
+          oldPassword: this.oldPassword,
+          password: this.newPassword,
+          confirmPassword: this.confirmPassword,
+        };
+        const response = await axios.put(`http://localhost:8080/user/update/${this.userId}`, updateData);
         if (response.data.success) {
-          alert('Cập nhật mật khẩu thành công');
+          this.showNotification(response.data.desc, 'success');
         } else {
-          alert('Mật khẩu cũ không đúng');
+          this.showNotification(response.data.desc, 'error');
         }
       } catch (error) {
         console.error('Lỗi khi cập nhật mật khẩu', error);
       }
+    },
+    showNotification(message, type = 'success') {
+      this.notificationMessage = message;
+      this.notificationType = type;
+      this.notificationVisible = true;
     },
   },
 };
