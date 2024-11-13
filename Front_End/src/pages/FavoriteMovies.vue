@@ -6,6 +6,8 @@
         v-for="movie in favoriteMovies" 
         :key="movie.id" 
         :movie="movie" 
+        :showDeleteButton="true"
+        @delete-movie="deleteFavoriteMovie" 
       />
     </GridComponent>
     <p v-if="!favoriteMovies.length">Không có phim yêu thích nào.</p>
@@ -40,6 +42,20 @@ export default {
         }
       } catch (error) {
         console.error("Lỗi khi lấy danh sách phim yêu thích", error);
+      }
+    },
+    async deleteFavoriteMovie(movieId) {
+      try {
+        const response = await axios.delete(`http://localhost:8080/user/favoriteMovie/delete`, {
+          params: { userId: this.userId, movieId },
+        });
+
+        if (response.data.success) {
+          this.fetchFavoriteMovies();
+          console.log(response.data.desc); // Hiển thị thông báo thành công
+        }
+      } catch (error) {
+        console.error("Lỗi khi xóa phim khỏi danh sách yêu thích:", error);
       }
     },
   },

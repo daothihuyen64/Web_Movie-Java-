@@ -29,6 +29,7 @@
               <li><router-link to="/packages">Gói dịch vụ</router-link></li>
               <li><router-link to="/favouriteMovies">Tủ phim yêu thích</router-link></li>
               <li><router-link to="/settings">Cài đặt</router-link></li>
+              <li v-if="role === 2"><router-link to="/manageSystem">Quản lý hệ thống</router-link></li>
               <li><a @click="logout">Đăng xuất</a></li>
             </ul>
           </div>
@@ -54,6 +55,9 @@ export default {
   computed: {
     nickname() {
       return this.$store.getters.nickname;
+    },
+    role() {
+      return this.$store.getters.role; // Giả sử bạn lưu userId trong store với getter tên là userId
     },
     isAuthenticated() {
       return this.$store.getters.isAuthenticated;

@@ -1,6 +1,7 @@
 import axios from 'axios'; 
 
 const state = {
+  role: 1,
   nickname: null,
   token: localStorage.getItem('token') || '',
   userId: null,
@@ -8,6 +9,7 @@ const state = {
 };
 
 const getters = {
+  role: state => state.role,
   nickname : state => state.nickname,
   token: state => state.token,
   isAuthenticated: state => state.isAuthenticated,
@@ -22,13 +24,15 @@ const actions = {
         password,
       });
       if (response.data.success) {
-        const {nickname, token, userId } = response.data.data;
+        const {role, nickname, token, userId } = response.data.data;
 
         // Lưu token và userId vào localStorage
+        localStorage.setItem('role', role);
         localStorage.setItem('token', token);
         localStorage.setItem('userId', userId);
         localStorage.setItem('nickname', nickname);
 
+        commit('SET_ROLE', role);
         commit('SET_TOKEN', token);
         commit('SET_USER_ID', userId);
         commit('SET_nickname', nickname);
@@ -45,6 +49,7 @@ const actions = {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('nickname');
+    localStorage.removeItem('role');
   }
 };
 
@@ -55,6 +60,9 @@ const mutations = {
   },
   SET_USER_ID(state, userId) {
     state.userId = userId;
+  },
+  SET_ROLE(state, role) {
+    state.role = role;
   },
   SET_nickname(state, nickname) {
     state.nickname = nickname;

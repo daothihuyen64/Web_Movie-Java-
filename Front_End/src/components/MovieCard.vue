@@ -8,15 +8,14 @@
       <span>{{ movie.ratingMean }}</span>
       <h3>{{ movie.movieName }}</h3>
     </div>
-    <div v-if="hover" class="hover-info">
-      <!-- Bạn có thể thêm thông tin hiển thị khi hover ở đây -->
+    <div v-if="hover && showDeleteButton" class="hover-info">
+      <button class="delete-btn" @click.stop="handleDelete">Xóa</button>
     </div>
   </div>
 </template>
 
 <script>
-import { useRouter } from 'vue-router'; // Sử dụng vue-router để điều hướng
-import { ref } from 'vue'; // Nhập ref để theo dõi trạng thái
+
 
 export default {
   name: "MovieCard",
@@ -24,25 +23,29 @@ export default {
     movie: {
       type: Object, // Chỉ nhận một đối tượng phim
       required: true,
+    },
+    showDeleteButton: {
+      type: Boolean,
+      default: false,  // Mặc định không hiển thị nút xóa
     }
   },
-  setup(props) {
-    const router = useRouter();
-    const hover = ref(false); // Sử dụng ref để theo dõi trạng thái hover
-
-    const goToMovieInfo = () => {
-      // Chỉ điều hướng đến trang InfoMoviePage mà không gọi API
-      router.push({ 
-        name: 'InfoMoviePage', // Đặt tên route tương ứng
-        params: { id: props.movie.id } // Truyền ID phim làm tham số
+  emits: ['delete-movie'],
+  methods: {
+    goToMovieInfo() {
+      this.$router.push({ 
+        name: 'InfoMoviePage', 
+        params: { id: this.movie.id },
       });
-    };
-
-    return {
-      hover,
-      goToMovieInfo,
-    };
+    },
+    handleDelete() {
+      this.$emit('delete-movie', this.movie.id); // Phát sự kiện xóa đến component cha
+    },
   },
+  data() {
+    return {
+      hover: false, // Theo dõi trạng thái hover
+    };
+  }
 };
 </script>
 
@@ -81,5 +84,18 @@ export default {
   font-size: 16px;
   margin: 5px 0;
   color: #fff;
+}
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
 }
 </style>
