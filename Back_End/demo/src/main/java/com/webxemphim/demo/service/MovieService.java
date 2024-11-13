@@ -1,6 +1,7 @@
 package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.MovieDTO;
+import com.webxemphim.demo.dto.MovieDetailDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Genre;
@@ -247,4 +248,12 @@ public class MovieService {
         return new ResponseData(200, true, "Lấy danh sách phim mới phát hành thành công!", newMovies);
     }
     
+    public ResponseData getAllMovies() {
+        List<MovieDetailDTO> movies = movieRepository.findAll()
+                .stream()
+                .map(movie -> modelMapper.map(movie, MovieDetailDTO.class)) // Chuyển đổi sang MovieDetailDTO
+                .collect(Collectors.toList());
+    
+        return new ResponseData(200, true, "Lấy danh sách tất cả phim thành công!", movies);
+    }
 }

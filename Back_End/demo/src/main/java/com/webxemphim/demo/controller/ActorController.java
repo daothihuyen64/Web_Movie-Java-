@@ -28,7 +28,11 @@ public class ActorController {
         ResponseData responseData = actorService.getActor(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
-
+    @GetMapping("/all")
+    public ResponseEntity<ResponseData> getAllActors() {
+        ResponseData responseData = actorService.getAllActors();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
     // @PutMapping("/{id}/add-movie")
     // public ResponseEntity<ResponseData> updateActor(@PathVariable int id, @RequestBody int movieId) {
     //     ResponseData responseData = actorService.updateActor(id, movieId);
