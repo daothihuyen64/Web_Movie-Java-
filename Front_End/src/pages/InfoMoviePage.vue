@@ -43,7 +43,7 @@
           <strong>Lượt xem : </strong> {{ movieData.views }}
         </p>
         <div class="button-group">
-          <button class="watch-now-btn">Xem Ngay</button>
+          <button class="watch-now-btn" @click="goToWatchMovie">Xem Ngay</button>
           <button class="follow-btn" @click="addToFavorites">+ Thêm phim yêu thích</button>
         </div>
       </div>
@@ -97,6 +97,7 @@ import axios from '@/axios';
 import { mapGetters } from 'vuex';
 import Notification from '../components/Notification.vue';
 
+
 export default {
   name: 'InfoMoviePage',
   components: {
@@ -114,7 +115,7 @@ export default {
       movieDataFound: true,
       comments: [],
       newComment: '',
-      currentUser: "", 
+      currentUser: "",
     };
   },
   computed: {
@@ -125,6 +126,7 @@ export default {
     this.fetchMovieData();
     this.fetchComments();
   },
+  
   methods: {
     async fetchComments() {
       try {
@@ -253,6 +255,7 @@ export default {
           movieId: this.$route.params.id,
         });
         if (response.status === 200 && response.data.success) {
+          this.show = false,
           this.showNotification('Đã thêm phim vào danh sách yêu thích');
         }
         else{
@@ -293,7 +296,17 @@ export default {
         THUMBS_UP: '👍'
       };
       return emojis[reactType] || '';
-    }
+    },
+    goToWatchMovie() {
+      if (this.movieData) {
+        this.$router.push({
+          name: 'WatchMoviePage',
+          params: {
+            id: this.movieData.id,
+          },
+        });
+      }
+    },
   },
 };
 </script>

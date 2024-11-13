@@ -13,6 +13,9 @@ import IdCountryMoviesPage from '../pages/IdCountryMoviesPage.vue';
 import IdReleaseYearMoviesPage from '../pages/IdReleaseYearMoviesPage.vue';
 import InfoMoviePage from '../pages/InfoMoviePage.vue';
 import PackagesPage from '../pages/PackagesPage.vue';
+import WatchMoviePage from '../pages/WatchMoviePage.vue';
+import ManagementSystemPage from '../pages/ManagementSystemPage.vue';
+
 const routes = [
   { path: '/', name : 'home',component: HomePage },  // Định nghĩa route cho HomePage
   { path: '/signin', name : 'login',component: LoginPage },
@@ -24,8 +27,10 @@ const routes = [
   { path: '/the-loai/:genreId', name: 'IdGenreMoviesPage', component: IdGenreMoviesPage, props: true},
   { path: '/quoc-gia/:countryId', name: 'IdCountryMoviesPage', component: IdCountryMoviesPage, props: true},
   { path: '/nam-phat-hanh/:releaseYearId', name: 'IdReleaseYearMoviesPage', component: IdReleaseYearMoviesPage, props: true},
-  { path: '/movie/:id', name: 'InfoMoviePage', component: InfoMoviePage, props: true},
+  { path: '/movie/:id', name: 'InfoMoviePage', component: InfoMoviePage},
   { path: '/packages', name: 'packages', component: PackagesPage },
+  { path: '/watch/:id', name: 'WatchMoviePage', component: WatchMoviePage},
+  { path: '/manageSystem', name: 'system', component: ManagementSystemPage },
 ];
 
 const router = createRouter({

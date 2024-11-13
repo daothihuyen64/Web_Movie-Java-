@@ -20,9 +20,12 @@ public class EpisodeController {
         ResponseData responseData = episodeService.addEpisode(episodeDTO);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
-    @PostMapping("/start/{userId}/{episodeId}")
-    public ResponseEntity<ResponseData> startEpisode(@PathVariable int userId, @PathVariable int episodeId) {
-        ResponseData responseData = episodeService.startEpisode(userId, episodeId);
+    @PostMapping("/start/{userId}/{episodeNumber}/{movieId}")
+    public ResponseEntity<ResponseData> startEpisode(
+            @PathVariable int userId, 
+            @PathVariable int episodeNumber, 
+            @PathVariable int movieId) {
+        ResponseData responseData = episodeService.startEpisode(userId, episodeNumber, movieId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 

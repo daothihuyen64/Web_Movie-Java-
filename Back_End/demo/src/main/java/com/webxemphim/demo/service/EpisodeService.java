@@ -69,7 +69,7 @@ public class EpisodeService {
         }
     }
 
-    public ResponseData startEpisode(int userId, int episodeId) {
+    public ResponseData startEpisode(int userId, int episodeNumber, int movieId) {
         try {
             // Lấy danh sách các giao dịch hợp lệ của user, sắp xếp theo endDate giảm dần
             List<Transaction> validTransactions = transactionRepository.findValidTransactions(userId, new Date(System.currentTimeMillis()));
@@ -79,16 +79,16 @@ public class EpisodeService {
                 Transaction latestTransaction = validTransactions.get(0);
                 TransactionDTO transactionDTO = modelMapper.map(latestTransaction, TransactionDTO.class);
     
-                // Lấy tập phim và bộ phim tương ứng
-                Optional<Episode> optionalEpisode = episodeRepository.findById(episodeId);
+                // Tìm tập phim dựa trên episodeNumber và movieId
+                Optional<Episode> optionalEpisode = episodeRepository.findByEpisodeNumberAndMovieId(episodeNumber, movieId);
                 if (optionalEpisode.isPresent()) {
                     Episode episode = optionalEpisode.get();
                     Movie movie = episode.getMovie();
-                    
+    
                     // Tăng lượt xem của bộ phim
                     movie.setViews(movie.getViews() + 1);
                     movieRepository.save(movie);  // Lưu lại bộ phim sau khi tăng lượt xem
-                    
+    
                     // Map Episode sang EpisodeDTO để lấy URL
                     EpisodeDTO episodeDTO = modelMapper.map(episode, EpisodeDTO.class);
                     // Nếu tồn tại giao dịch hợp lệ, cho phép phát tập phim
