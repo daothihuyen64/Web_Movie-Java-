@@ -8,9 +8,11 @@ import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UpdateUserDTO;
 import com.webxemphim.demo.dto.UserDTO;
+import com.webxemphim.demo.entity.User;
 import com.webxemphim.demo.payload.ResponseData;
 
 public interface UserServiceImp {
+    List<UserDTO> getAllUser();
     UserDTO getUser(int id);
     ResponseData updateUser(int userId, UpdateUserDTO updateUserDTO);
     boolean addFavoriteMovie(FavoriteMovieDTO favoriteMovieDTO);
