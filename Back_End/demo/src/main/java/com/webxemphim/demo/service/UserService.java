@@ -66,10 +66,11 @@ public class UserService implements UserServiceImp{
             userDTO.setPassword(users.getPassword());
             userDTO.setNickName(users.getNickName());
             userDTO.setPhone(users.getPhone());
+            userDTO.setRole(users.getRole().getId());
 
             userDTOList.add(userDTO);
         }
-        
+
         return userDTOList;
     }
 
