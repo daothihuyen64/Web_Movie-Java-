@@ -73,4 +73,9 @@ public class MovieController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllMovies() {
+        ResponseData responseData = movieService.getAllMovies();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }
