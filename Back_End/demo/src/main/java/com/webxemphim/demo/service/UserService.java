@@ -53,6 +53,28 @@ public class UserService implements UserServiceImp{
     @Autowired
     private TransactionRepository transactionRepository;
 
+    //Lấy thông tin của tất cả các user
+    @Override
+    public List<UserDTO> getAllUser() {
+        List<User> listUser = userRepository.findAll();
+        List<UserDTO> userDTOList = new ArrayList<>();
+
+        for (User users : listUser) {
+            UserDTO userDTO = new UserDTO();
+            userDTO.setId(users.getId());
+            userDTO.setUserName(users.getUserName());
+            userDTO.setPassword(users.getPassword());
+            userDTO.setNickName(users.getNickName());
+            userDTO.setPhone(users.getPhone());
+            userDTO.setRole(users.getRole().getId());
+
+            userDTOList.add(userDTO);
+        }
+
+        return userDTOList;
+    }
+
+
     //Lấy thông tin của 1 User
     @Override
     public UserDTO getUser(int id) {
