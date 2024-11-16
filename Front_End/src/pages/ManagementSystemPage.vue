@@ -120,6 +120,31 @@
                 <p class="movie-status">Trạng thái: {{ movie.status === 1 ? 'Đang chiếu' : 'Ngừng chiếu' }}</p>
                 <!-- Nút chỉnh sửa phim -->
                 <button @click="openEditMovieForm(movie.id)">Chỉnh sửa</button>
+                <button @click="openAddEpisodeForm(movie.id)">Thêm tập phim</button>
+
+                <!-- Form hiển thị URL dưới dạng box -->
+                <div v-if="showEpisodeForm && currentEditingMovieId === movie.id" class="episode-modal">
+                  <div class="episode-modal-content">
+                    <button class="close-button" @click="closeEpisodeForm">X</button>
+                    <div class="episode-group" v-for="episode in episodes" :key="episode.episodeNumber">
+                      <label :for="'episodeUrl' + episode.episodeNumber">Tập {{ episode.episodeNumber }}</label>
+                      <input 
+                        v-model="episode.episodeUrl" 
+                        :id="'episodeUrl' + episode.episodeNumber"  
+                        :placeholder="'URL tập ' + episode.episodeNumber"
+                        type="url"
+                        @invalid="alert('Vui lòng nhập URL hợp lệ!')"
+                      />
+                      <button 
+                        class="save-button" 
+                        @click="handleEpisodeUrlChange(episode.id, episode.episodeNumber, episode.episodeUrl, movie.id)"
+                  
+                      >
+                        Lưu
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -182,7 +207,7 @@
         </div>
       </div>
       <div v-else-if="activeMenuItem === 'actors'">
-        <h2>Quản lý Diễn viên</h2>
+        <ActorManagement />
         <!-- Nội dung quản lý diễn viên -->
       </div>
     </div>
@@ -192,10 +217,12 @@
 <script>
 import axios from '@/axios';
 import UserManagement from '../components/UserManagement.vue';
+import ActorManagement from "../components/ActorManagement.vue";
 export default {
   name: 'ManagementSystemPage',
   components: {
     UserManagement,
+    ActorManagement,
   },
   data() {
     return {
@@ -240,6 +267,11 @@ export default {
       isAddMovieFormVisible: false, // Hiển thị form thêm phim mới
       isEditMovieFormVisible: false,
       currentMovie: null,
+
+      episodes: [], // Danh sách các tập phim
+      movie: {}, // Dữ liệu bộ phim, chứa thông tin về tổng số tập phim
+      showEpisodeForm: false,
+      currentEditingMovieId: null,
     };
   },
   async created() {
@@ -445,6 +477,93 @@ export default {
       this.isAddMovieFormVisible = false;
       this.resetNewMovieForm();
     },
+
+
+  async openAddEpisodeForm(imdb_id) {
+    try {
+      // Lấy thông tin về bộ phim và các tập phim đã có URL
+      const movieResponse = await axios.get(`http://localhost:8080/movies/${imdb_id}`);
+      const totalEpisodes = movieResponse.data.data.totalEpisodes; // Số tập phim tổng cộng
+      const episodesResponse = await axios.get(`http://localhost:8080/episodes/movie/${imdb_id}`);
+      const episodesWithUrl = episodesResponse.data.data;
+
+      // Tạo mảng tất cả các tập phim, bao gồm cả các tập chưa có URL
+      this.episodes = [];
+      for (let i = 1; i <= totalEpisodes; i++) {
+        const existingEpisode = episodesWithUrl.find(episode => episode.episodeNumber === i);
+        this.episodes.push({
+          id: existingEpisode ? existingEpisode.id : null,
+          episodeNumber: i,
+          episodeUrl: existingEpisode ? existingEpisode.episodeUrl : '',
+          movieId: imdb_id
+        });
+      }
+      this.showEpisodeForm = true;
+      this.currentEditingMovieId = imdb_id;
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+   
+  },
+  async handleEpisodeUrlChange(episodeId, episodeNumber, newUrl, movieId) {
+    const existingEpisode = this.episodes.find(episode => episode.episodeNumber === episodeNumber);
+    
+    if (existingEpisode && existingEpisode.id && this.checkEpisodeURL(existingEpisode.episodeUrl)) {
+      await this.updateEpisodeUrl(episodeId, newUrl);
+    } else {
+      await this.addEpisodeUrl(movieId, episodeNumber, newUrl);
+    }
+  },
+  async updateEpisodeUrl(episodeId, newUrl) {
+    try {
+      const response = await axios.put(`http://localhost:8080/episodes/update-url/${episodeId}`, {
+        episodeUrl: newUrl
+      });
+
+      if (response.data.success) {
+        alert(response.data.desc);
+        this.openAddEpisodeForm();
+      } 
+    } catch (error) {
+      console.error('Error updating episode URL:', error);
+    }
+  },
+  async addEpisodeUrl(movieId, episodeNumber, episodeUrl) {
+    try {
+      const response = await axios.post('http://localhost:8080/episodes/add', {
+        episodeNumber: episodeNumber,
+        episodeUrl: episodeUrl,
+        movieId: movieId
+      });
+
+      if (response.data.success) {
+        alert(response.data.desc);
+        this.openAddEpisodeForm();
+      }
+    } catch (error) {
+      console.error('Error adding episode URL:', error);
+    }
+  },
+  closeEpisodeForm() {
+    this.showEpisodeForm = false;
+    this.currentEditingMovieId = null;
+  },
+  checkEpisodeURL(episodeUrl){
+     if (!episodeUrl || episodeUrl.trim() === '') {
+      // Nếu URL trống, hiển thị thông báo lỗi cho tập phim này
+      alert('Vui lòng nhập URL!');
+      return false;
+    } else {
+      // Kiểm tra định dạng của URL
+      const urlPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+      if (!urlPattern.test(episodeUrl)) {
+        alert('Nhập đúng định dạng URL!');
+        return false;
+      }
+    }
+    return true;
+
+  }
 
   },
 };
@@ -701,6 +820,111 @@ export default {
 .edit-movie-form button[type="button"]:hover {
   background-color: #e53935;
 }
+
+/* Modal Container */
+.episode-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Làm nền tối hơn để nổi bật box */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Content Box */
+.episode-modal-content {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  width: 500px;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+  text-align: center;
+}
+
+.close-button { 
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: black;  /* Màu mặc định là đen */
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: none;
+}
+
+.close-button:hover {
+  color: #ff4d4d;  /* Chuyển màu sang đỏ khi hover */
+  transform: scale(1.1);
+}
+
+
+/* Header of Modal */
+.episode-modal-content h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Input Group */
+.episode-modal-content .episode-group {
+  margin-bottom: 20px; /* Khoảng cách giữa các tập */
+  text-align: left;    /* Căn trái nhãn và input */
+}
+
+/* Labels */
+.episode-modal-content label {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+/* Inputs */
+.episode-modal-content input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.episode-modal-content input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0px 0px 8px rgba(0, 123, 255, 0.5);
+}
+
+.save-button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
 /* Đảm bảo form có responsive */
 @media (max-width: 768px) {
   .add-movie-form {

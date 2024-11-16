@@ -3,10 +3,10 @@
     <div class="admin-section">
       <h2>Danh sách Admin</h2>
       <div v-if="admins.length" class="user-cards">
-        <div v-for="admin in admins" :key="admin.id" class="user-card admin-card">
+        <div v-for="admin in admins" :key="admin.id" class="user-card admin-card" @click="fetchUserTransactions(admin.id)">
           <h3>{{ admin.nickName }}</h3>
           <p>Email: {{ admin.userName }}</p>
-          <p>SĐT: {{ admin.phoneNumber || 'Chưa cập nhật' }}</p> <!-- Hiển thị SDT hoặc thông báo nếu không có -->
+          <p>SĐT: {{ admin.phoneNumber || 'Chưa cập nhật' }}</p>
         </div>
       </div>
       <p v-else class="empty-message">Không có admin nào.</p>
@@ -15,18 +15,34 @@
     <div class="user-section">
       <h2>Danh sách Người dùng</h2>
       <div v-if="users.length" class="user-cards">
-        <div v-for="user in users" :key="user.id" class="user-card">
+        <div v-for="user in users" :key="user.id" class="user-card" @click="fetchUserTransactions(user.id)">
           <h3>{{ user.nickName }}</h3>
           <p>Email: {{ user.userName }}</p>
-          <p>SĐT: {{ user.phoneNumber || 'Chưa cập nhật' }}</p> <!-- Hiển thị SDT hoặc thông báo nếu không có -->
+          <p>SĐT: {{ user.phoneNumber || 'Chưa cập nhật' }}</p>
         </div>
       </div>
       <p v-else class="empty-message">Không có người dùng nào.</p>
     </div>
 
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <!-- Modal giao dịch -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal-content">
+        <button class="close-btn" @click="closeModal">X</button>
+        <h3>Gói dịch vụ đã mua:</h3>
+        <ul>
+          <li v-for="transaction in selectedUserTransactions" :key="transaction.startDate" class="transaction-item">
+            <strong>{{ transaction.packageName }}</strong>
+            <p class="transaction-time">Thời gian: {{ transaction.startDate }} - {{ transaction.endDate }}</p>
+          </li>
+        </ul>
+        <p v-if="selectedUserTransactions.length === 0" class="empty-message">Người dùng chưa đăng ký gói dịch vụ nào.</p>
+      </div>
+    </div>
+
+   
   </div>
 </template>
+
 
 <script>
 import axios from '@/axios.js';
@@ -37,6 +53,8 @@ export default {
       admins: [],
       users: [],
       errorMessage: '', // Thêm để lưu lỗi nếu có
+      selectedUserTransactions: [],
+      showModal: false, 
     };
   },
   created() {
@@ -55,6 +73,20 @@ export default {
         this.errorMessage = 'Không thể tải danh sách người dùng. Vui lòng thử lại sau.';
         console.error('Lỗi khi tải danh sách người dùng:', error);
       }
+    },
+    async fetchUserTransactions(userId) {
+      try {
+        const response = await axios.get(`http://localhost:8080/user/transaction/history/${userId}`);
+        this.selectedUserTransactions = response.data;
+        this.showModal = true; 
+        
+      } catch (error) {
+        this.errorMessage = 'Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.';
+        console.error('Lỗi khi tải giao dịch của người dùng:', error);
+      }
+    },
+    closeModal() {
+      this.showModal = false; // Đóng modal
     },
   },
 };
@@ -132,10 +164,80 @@ h2 {
   border-color: #c8e6c9;
 }
 
-.empty-message {
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8); /* Nền mờ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal nội dung */
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.modal-content h3 {
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 15px;
   text-align: center;
-  color: #999;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  color: #333;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: red;
+}
+
+/* Danh sách các giao dịch */
+.transaction-item {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-item strong {
+  font-weight: bold;
+  color: #1a73e8;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.transaction-time {
+  font-size: 14px;
+  color: #777;
+}
+
+/* Thông báo khi không có gói dịch vụ */
+.empty-message {
+  color: #ff5733;
   font-size: 16px;
+  text-align: center;
   margin-top: 20px;
 }
 
@@ -145,4 +247,6 @@ h2 {
   font-size: 16px;
   margin-top: 20px;
 }
+
+
 </style>
