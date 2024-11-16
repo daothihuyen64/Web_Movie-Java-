@@ -3,8 +3,12 @@
 package com.webxemphim.demo.controller;
 
 import com.webxemphim.demo.dto.ActorDTO;
+import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.service.ActorService;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,9 +47,9 @@ public class ActorController {
     //     return actorService.updateActor(actorId, movieId);
     // }
 
-    @PutMapping("/update-actor/{movieId}")
-    public ResponseEntity<ResponseData> updateActor(@RequestBody ActorDTO actorDTO, @PathVariable int movieId) {
-        ResponseData responseData = actorService.updateActor(actorDTO, movieId);
+    @PutMapping("/update-actors/{movieId}")
+    public ResponseEntity<ResponseData> updateActors(@RequestBody List<SimpleActorDTO> actorDTOList, @PathVariable int movieId) {
+        ResponseData responseData = actorService.updateActors(actorDTOList, movieId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 }
