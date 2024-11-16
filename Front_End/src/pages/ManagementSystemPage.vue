@@ -24,8 +24,8 @@
         <!-- Nội dung quản lý gói dịch vụ -->
       </div>
       <div v-else-if="activeMenuItem === 'users'">
-        <h2>Quản lý Người dùng</h2>
         <!-- Nội dung quản lý người dùng -->
+        <UserManagement />
       </div>
       <div v-else-if="activeMenuItem === 'movies'">
         <h2>Quản lý Phim</h2>
@@ -191,8 +191,12 @@
 
 <script>
 import axios from '@/axios';
+import UserManagement from '../components/UserManagement.vue';
 export default {
   name: 'ManagementSystemPage',
+  components: {
+    UserManagement,
+  },
   data() {
     return {
       // Các mục trong menu
