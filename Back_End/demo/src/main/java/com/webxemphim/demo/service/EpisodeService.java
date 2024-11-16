@@ -54,7 +54,9 @@ public class EpisodeService {
                 }
 
                 // Ánh xạ từ EpisodeDTO sang Entity Episode
-                Episode episode = modelMapper.map(episodeDTO, Episode.class);
+                Episode episode = new Episode();
+                episode.setEpisodeNumber(episodeDTO.getEpisodeNumber());
+                episode.setEpisodeUrl(episodeDTO.getEpisodeUrl());
                 episode.setMovie(movie);
 
                 // Lưu tập phim vào database
@@ -139,4 +141,33 @@ public class EpisodeService {
         }
     }
 
+    public ResponseData getAllEpisodes(int movieId) {
+        try {
+            // Kiểm tra xem bộ phim có tồn tại không
+            Optional<Movie> optionalMovie = movieRepository.findById(movieId);
+            if (optionalMovie.isPresent()) {
+                // Lấy danh sách tất cả các tập của bộ phim
+                List<Episode> episodes = episodeRepository.findAllByMovieIdOrderByEpisodeNumberAsc(movieId);
+    
+                if (episodes.isEmpty()) {
+                    return new ResponseData(HttpStatus.OK.value(), true, "Bộ phim chưa có tập nào!", List.of());
+                }
+    
+                // Map danh sách Entity Episode sang DTO
+                List<EpisodeDTO> episodeDTOs = episodes.stream()
+                        .map(episode -> {
+                            EpisodeDTO episodeDTO = modelMapper.map(episode, EpisodeDTO.class);
+                            episodeDTO.setMovieId(movieId); // Đảm bảo MovieId được set đúng
+                            return episodeDTO;
+                        })
+                        .toList();
+    
+                return new ResponseData(HttpStatus.OK.value(), true, "Lấy danh sách tập phim thành công!", episodeDTOs);
+            } else {
+                return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Bộ phim không tồn tại!", null);
+            }
+        } catch (Exception e) {
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Lỗi khi lấy danh sách tập phim: " + e.getMessage(), null);
+        }
+    }
 }

@@ -3,6 +3,7 @@ package com.webxemphim.demo.service;
 import com.webxemphim.demo.dto.MovieDTO;
 import com.webxemphim.demo.dto.MovieDetailDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
+import com.webxemphim.demo.entity.Actor;
 import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Genre;
 import com.webxemphim.demo.entity.Movie;
@@ -17,6 +18,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -120,9 +122,14 @@ public class MovieService {
     }
 
     public ResponseData updateMovie(int id, MovieDTO movieDTO) {
+        Optional<Movie> existingMovieOpt = movieRepository.findFirstByMovieName(movieDTO.getMovieName());
+        if (existingMovieOpt.isPresent() && existingMovieOpt.get().getId() != id) {
+            return new ResponseData(400, false, "Phim đã tồn tại trong hệ thống!", null);
+        }
         // Tìm phim theo ID
         Optional<Movie> movieOpt = movieRepository.findById(id);
-    
+
+        
         // Nếu không tìm thấy phim, trả về lỗi 404
         if (!movieOpt.isPresent()) {
             return new ResponseData(404, false, "Không tìm thấy phim!", null);
@@ -139,7 +146,7 @@ public class MovieService {
         if(movieDTO.getDirector() != null) movie.setDirector(movieDTO.getDirector());
         if(movieDTO.getTotalEpisodes() != 0) movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
         if(movieDTO.getViews() != 0) movie.setViews(movieDTO.getViews());
-        movie.setStatus(1); // Giữ status là 1 khi cập nhật
+        movie.setStatus(movieDTO.getStatus()); // Giữ status là 1 khi cập nhật
     
         // Cập nhật Genre
         if (movieDTO.getGenre() != null) {
@@ -251,6 +258,7 @@ public class MovieService {
     public ResponseData getAllMovies() {
         List<MovieDetailDTO> movies = movieRepository.findAll()
                 .stream()
+                .sorted(Comparator.comparing(Movie::getMovieName))
                 .map(movie -> modelMapper.map(movie, MovieDetailDTO.class)) // Chuyển đổi sang MovieDetailDTO
                 .collect(Collectors.toList());
     

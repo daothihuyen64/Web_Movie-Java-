@@ -35,4 +35,9 @@ public class EpisodeController {
         ResponseData responseData = episodeService.updateUrlEpisode(episodeId, episode);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    @GetMapping("/movie/{movieId}")
+    public ResponseEntity<ResponseData> getAllEpisodes(@PathVariable int movieId) {
+        ResponseData responseData = episodeService.getAllEpisodes(movieId);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }

@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EpisodeInterface extends JpaRepository<Episode, Integer> {
     Optional<Episode> findByEpisodeNumberAndMovieId(int episodeNumber, int movieId);
+    List<Episode> findAllByMovieIdOrderByEpisodeNumberAsc(int movieId);
 }
