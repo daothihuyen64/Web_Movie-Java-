@@ -144,7 +144,7 @@ public class MovieService {
         if(movieDTO.getDirector() != null) movie.setDirector(movieDTO.getDirector());
         if(movieDTO.getTotalEpisodes() != 0) movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
         if(movieDTO.getViews() != 0) movie.setViews(movieDTO.getViews());
-        movie.setStatus(1); // Giữ status là 1 khi cập nhật
+        movie.setStatus(movieDTO.getStatus()); // Giữ status là 1 khi cập nhật
     
         // Cập nhật Genre
         if (movieDTO.getGenre() != null) {
