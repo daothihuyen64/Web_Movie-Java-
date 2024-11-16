@@ -120,9 +120,8 @@ public class MovieService {
     }
 
     public ResponseData updateMovie(int id, MovieDTO movieDTO) {
-        // Nếu phim đã tồn tại với status != 0, không thêm mới
         Optional<Movie> existingMovieOpt = movieRepository.findFirstByMovieName(movieDTO.getMovieName());
-        if (existingMovieOpt.isPresent() && existingMovieOpt.get().getStatus() != 0) {
+        if (existingMovieOpt.isPresent() && existingMovieOpt.get().getId() != id) {
             return new ResponseData(400, false, "Phim đã tồn tại trong hệ thống!", null);
         }
         // Tìm phim theo ID
