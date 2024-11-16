@@ -1,6 +1,7 @@
 package com.webxemphim.demo.dto;
 
 public class EpisodeDTO {
+    private int id;
     private int episodeNumber;
     private String episodeUrl;
     private int movieId;
@@ -28,5 +29,12 @@ public class EpisodeDTO {
 
     public void setMovieId(int movieId) {
         this.movieId = movieId;
+    }
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
