@@ -2,6 +2,7 @@ package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.ActorDTO;
 import com.webxemphim.demo.dto.MovieDetailDTO;
+import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.entity.Actor;
 import com.webxemphim.demo.entity.Movie;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -134,9 +136,10 @@ public class ActorService {
     
     
     public ResponseData getAllActors() {
-        List<ActorDTO> actors = actorRepository.findAll()
+        List<SimpleActorDTO> actors = actorRepository.findAll()
                 .stream()
-                .map(actor -> modelMapper.map(actor, ActorDTO.class))
+                .sorted(Comparator.comparing(Actor::getNameActor))
+                .map(actor -> modelMapper.map(actor, SimpleActorDTO.class))
                 .collect(Collectors.toList());
     
         return new ResponseData(200, true, "Lấy danh sách tất cả diễn viên thành công!", actors);

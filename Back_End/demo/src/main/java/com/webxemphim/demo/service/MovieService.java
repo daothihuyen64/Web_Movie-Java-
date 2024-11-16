@@ -3,6 +3,7 @@ package com.webxemphim.demo.service;
 import com.webxemphim.demo.dto.MovieDTO;
 import com.webxemphim.demo.dto.MovieDetailDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
+import com.webxemphim.demo.entity.Actor;
 import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Genre;
 import com.webxemphim.demo.entity.Movie;
@@ -17,6 +18,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -256,6 +258,7 @@ public class MovieService {
     public ResponseData getAllMovies() {
         List<MovieDetailDTO> movies = movieRepository.findAll()
                 .stream()
+                .sorted(Comparator.comparing(Movie::getMovieName))
                 .map(movie -> modelMapper.map(movie, MovieDetailDTO.class)) // Chuyển đổi sang MovieDetailDTO
                 .collect(Collectors.toList());
     
