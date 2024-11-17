@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -79,61 +80,53 @@ public class ActorService {
         }
     }
 
-    public ResponseData updateActor(ActorDTO nameActor, int movieId) {
+    public ResponseData updateActors(List<SimpleActorDTO> actorDTOList, int movieId) {
         ResponseData responseData = new ResponseData();
+        List<SimpleActorDTO> updatedActors = new ArrayList<>();
+    
         try {
-            // Tìm diễn viên theo tên
-            Optional<Actor> optionalActor = actorRepository.findByNameActor(nameActor.getNameActor());
-            Actor actor;
-    
-            if (!optionalActor.isPresent()) {
-                // Diễn viên không tồn tại, tạo mới
-                actor = new Actor();
-                actor.setNameActor(nameActor.getNameActor());
-                actorRepository.save(actor);
-            } else {
-                // Diễn viên đã tồn tại
-                actor = optionalActor.get();
-            }
-    
             // Tìm phim cần liên kết
             Movie movie = movieRepository.findById(movieId)
                     .orElseThrow(() -> new RuntimeException("Phim không tồn tại!"));
     
-            // Kiểm tra nếu liên kết diễn viên-phim đã tồn tại
-            boolean exists = movieActorRepository.existsByActorAndMovie(actor, movie);
-            if (exists) {
-                responseData.setStatus(HttpStatus.BAD_REQUEST.value());
-                responseData.setSuccess(false);
-                responseData.setDesc("Diễn viên đã được thêm vào phim này trước đó!");
-                return responseData;
+            for (SimpleActorDTO actorDTO : actorDTOList) {
+                Optional<Actor> optionalActor = actorRepository.findByNameActor(actorDTO.getNameActor());
+                Actor actor;
+    
+                if (!optionalActor.isPresent()) {
+                    // Diễn viên không tồn tại, tạo mới
+                    actor = new Actor();
+                    actor.setNameActor(actorDTO.getNameActor());
+                    actorRepository.save(actor);
+                } else {
+                    // Diễn viên đã tồn tại
+                    actor = optionalActor.get();
+                }
+    
+                // Kiểm tra nếu liên kết diễn viên-phim đã tồn tại
+                boolean exists = movieActorRepository.existsByActorAndMovie(actor, movie);
+                if (!exists) {
+                    // Tạo liên kết giữa diễn viên và phim nếu chưa tồn tại
+                    Movie_Actor movieActor = new Movie_Actor();
+                    movieActor.setActor(actor);
+                    movieActor.setMovie(movie);
+                    movieActorRepository.save(movieActor);
+                }
+    
+                // Chuyển đổi Actor thành ActorDTO và thêm vào danh sách đã cập nhật
+                SimpleActorDTO updatedActorDTO = modelMapper.map(actor, SimpleActorDTO.class);
+                updatedActors.add(updatedActorDTO);
             }
     
-            // Tạo liên kết giữa diễn viên và phim nếu chưa tồn tại
-            Movie_Actor movieActor = new Movie_Actor();
-            movieActor.setActor(actor);
-            movieActor.setMovie(movie);
-            movieActorRepository.save(movieActor);
-    
-            // Chuyển đổi Actor thành ActorDTO để trả về
-            ActorDTO actorDTOResponse = modelMapper.map(actor, ActorDTO.class);
-            responseData.setData(actorDTOResponse);
-    
-            // Đặt thông báo thành công phù hợp
-            if (!optionalActor.isPresent()) {
-                responseData.setDesc("Thêm mới diễn viên và cập nhật phim thành công!");
-            } else {
-                responseData.setDesc("Cập nhật diễn viên cho phim thành công!");
-            }
-    
+            responseData.setData(updatedActors);
+            responseData.setDesc("Cập nhật danh sách diễn viên thành công!");
         } catch (Exception e) {
             responseData.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             responseData.setSuccess(false);
-            responseData.setDesc("Lỗi khi cập nhật hoặc thêm mới diễn viên: " + e.getMessage());
+            responseData.setDesc("Lỗi khi cập nhật danh sách diễn viên: " + e.getMessage());
         }
         return responseData;
     }
-    
     
     public ResponseData getAllActors() {
         List<SimpleActorDTO> actors = actorRepository.findAll()

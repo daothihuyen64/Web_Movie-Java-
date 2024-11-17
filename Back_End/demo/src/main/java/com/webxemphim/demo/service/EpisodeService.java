@@ -122,12 +122,14 @@ public class EpisodeService {
                 }
     
                 // Cập nhật thông tin URL từ EpisodeDTO
+                episode.setId(episodeId);
                 if(episodeDTO.getEpisodeUrl() != null)episode.setEpisodeUrl(episodeDTO.getEpisodeUrl());
                 if(episodeDTO.getEpisodeNumber() != 0)episode.setEpisodeNumber(episodeDTO.getEpisodeNumber());
                 episodeRepository.save(episode);
     
                 // Tạo đối tượng DTO để trả về
                 EpisodeDTO updatedDTO = new EpisodeDTO();
+                updatedDTO.setId(episode.getId());
                 updatedDTO.setEpisodeNumber(episode.getEpisodeNumber());
                 updatedDTO.setEpisodeUrl(episode.getEpisodeUrl());
                 updatedDTO.setMovieId(movie.getId());

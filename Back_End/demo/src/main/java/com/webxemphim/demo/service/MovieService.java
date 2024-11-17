@@ -112,13 +112,15 @@ public class MovieService {
     
 
     public ResponseData getMovie(int movieId) {
-        try {
-            Movie movie = getActiveMovieOrThrow(movieId);
-            MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
-            return new ResponseData(200, true, "Lấy thông tin phim thành công!", movieDTO);
-        } catch (IllegalArgumentException e) {
-            return new ResponseData(404, false, e.getMessage(), null);
+        Optional<Movie> movieOpt = movieRepository.findById(movieId);
+    
+        if (!movieOpt.isPresent()) {
+            return new ResponseData(404, false, "Không tìm thấy phim!", null);
         }
+    
+        // Chuyển đổi sang DTO để trả về
+        MovieDTO movieDTO = modelMapper.map(movieOpt.get(), MovieDTO.class);
+        return new ResponseData(200, true, "Lấy thông tin phim thành công!", movieDTO);
     }
 
     public ResponseData updateMovie(int id, MovieDTO movieDTO) {
