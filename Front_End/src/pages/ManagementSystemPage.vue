@@ -22,6 +22,7 @@
       <div v-if="activeMenuItem === 'packages'">
         <h2>Quản lý Gói dịch vụ</h2>
         <!-- Nội dung quản lý gói dịch vụ -->
+        <PackageManagement />
       </div>
       <div v-else-if="activeMenuItem === 'users'">
         <!-- Nội dung quản lý người dùng -->
@@ -218,11 +219,14 @@
 import axios from '@/axios';
 import UserManagement from '../components/UserManagement.vue';
 import ActorManagement from "../components/ActorManagement.vue";
+import PackageManagement from "../components/PackageManagement.vue";
+
 export default {
   name: 'ManagementSystemPage',
   components: {
     UserManagement,
     ActorManagement,
+    PackageManagement,
   },
   data() {
     return {
