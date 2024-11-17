@@ -105,11 +105,17 @@ public class UserService implements UserServiceImp{
                 responseData.setSuccess(false);
                 return  responseData; 
             }
-    
+            
             if (!updateUserDTO.getPassword().equals(updateUserDTO.getConfirmPassword())) {
                 responseData.setDesc("Mật khẩu mới không khớp.");
                 responseData.setSuccess(false);
                 return responseData; 
+            }
+
+            if (!isValidPassword(updateUserDTO.getPassword())) {
+                responseData.setDesc("Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất một chữ cái in hoa, một chữ số và một ký tự đặc biệt.");
+                responseData.setSuccess(false);
+                return responseData;
             }
 
             user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword()));  
@@ -128,6 +134,13 @@ public class UserService implements UserServiceImp{
         responseData.setDesc("Cập nhật thông tin thành công.");   
             
         return responseData;
+    }
+
+    public boolean isValidPassword(String password) {
+        if(password.length() < 8 || !password.matches(".*[A-Z].*") || !password.matches(".*[0-9].*") || !password.matches(".*[^a-zA-Z0-9].*")) {
+            return false; 
+        }
+        return true;
     }
     
     //Tìm kiếm phim bằng tên phim 
