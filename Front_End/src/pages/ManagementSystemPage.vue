@@ -1,7 +1,7 @@
 <template>
   <div class="management-system-page">
     <button class="toggle-sidebar-btn" @click="toggleSidebar">
-     {{ isSidebarOpen ? '<>' : '<>' }}
+     {{ isSidebarOpen ? '</>' : '</>' }}
     </button>
     <!-- Sidebar Navigation -->
     <div class="sidebar" v-if="isSidebarOpen">
@@ -122,6 +122,7 @@
                 <!-- Nút chỉnh sửa phim -->
                 <button @click="openEditMovieForm(movie.id)">Chỉnh sửa</button>
                 <button @click="openAddEpisodeForm(movie.id)">Thêm tập phim</button>
+                <button @click="openAddActorForm(movie.id)">Thêm diễn viên</button>
 
                 <!-- Form hiển thị URL dưới dạng box -->
                 <div v-if="showEpisodeForm && currentEditingMovieId === movie.id" class="episode-modal">
@@ -144,6 +145,38 @@
                         Lưu
                       </button>
                     </div>
+                  </div>
+                </div>
+                <div v-if="showAddActorModal" class="modal">
+                  <div class="modal-content">
+                    <h2>Quản lý diễn viên</h2>
+                    <!-- Danh sách diễn viên hiện tại -->
+                    <div class="existing-actors">
+                      <h3>Danh sách diễn viên</h3>
+                      <ul>
+                        <li v-for="actor in existingActors" :key="actor.id">
+                          {{ actor.nameActor }}
+                        </li>
+                      </ul>
+                    </div>
+
+                    <!-- Thêm diễn viên mới -->
+                    <div class="add-new-actors">
+                      <h3>Thêm diễn viên mới</h3>
+                      <div v-for="(actor, index) in newActors" :key="index" class="new-actor">
+                        <input 
+                          type="text" 
+                          v-model="newActors[index].nameActor" 
+                          placeholder="Nhập tên diễn viên"
+                        />
+                        <button @click="removeActor(index)">Xóa</button>
+                      </div>
+                      <button @click="addNewActor">+</button>
+                    </div>
+
+                    <!-- Nút lưu -->
+                    <button @click="saveActors" class="save">Lưu</button>
+                    <button @click="closeAddActorForm" class="close">Đóng</button>
                   </div>
                 </div>
               </div>
@@ -276,6 +309,11 @@ export default {
       movie: {}, // Dữ liệu bộ phim, chứa thông tin về tổng số tập phim
       showEpisodeForm: false,
       currentEditingMovieId: null,
+
+      showAddActorModal: false,
+      movieId: null,
+      existingActors: [],
+      newActors: [{ nameActor: '' }], // Khởi tạo với 1 dòng trống
     };
   },
   async created() {
@@ -288,13 +326,7 @@ export default {
       // Gọi hàm reset tương ứng với item
       if (item === 'movies') {
         await this.resetMenuItemMovie();
-      } else if (item === 'users') {
-        this.resetMenuItemUser();
-      } else if (item === 'packages') {
-        this.resetMenuItemPackage();
-      } else if (item === 'actors') {
-        this.resetMenuItemActor();
-      }
+      } 
     },
     toggleSidebar() {
       this.isSidebarOpen = !this.isSidebarOpen; // Đóng/mở sidebar
@@ -398,20 +430,6 @@ export default {
         this.fetchReleaseYears()
       ]);
     
-    },
-    resetMenuItemUser() {
-      // Reset dữ liệu cho menu quản lý người dùng
-      console.log('Reset thông tin cho người dùng');
-    },
-
-    resetMenuItemPackage() {
-      // Reset dữ liệu cho menu quản lý gói dịch vụ
-      console.log('Reset thông tin cho gói dịch vụ');
-    },
-
-    resetMenuItemActor() {
-      // Reset dữ liệu cho menu quản lý diễn viên
-      console.log('Reset thông tin cho diễn viên');
     },
     resetNewMovieForm() {
       this.newMovie = {
@@ -544,6 +562,9 @@ export default {
         alert(response.data.desc);
         this.openAddEpisodeForm();
       }
+      else{
+        alert(response.data.desc);
+      }
     } catch (error) {
       console.error('Error adding episode URL:', error);
     }
@@ -567,7 +588,64 @@ export default {
     }
     return true;
 
-  }
+  },
+
+  // Mở modal thêm diễn viên
+    openAddActorForm(movieId) {
+      this.movieId = movieId;
+      this.showAddActorModal = true;
+      this.fetchExistingActors(movieId);
+    },
+
+    // Đóng modal
+    closeAddActorForm() {
+      this.showAddActorModal = false;
+      this.existingActors = [];
+      this.newActors = [{ nameActor: '' }];
+    },
+
+    // Lấy danh sách diễn viên hiện tại
+    async fetchExistingActors(movieId) {
+      try {
+        const response = await axios.get(`http://localhost:8080/movies/${movieId}/actors`);
+        if (response.data.success) {
+          this.existingActors = response.data.data;
+        } else {
+          alert(response.data.desc || 'Không thể lấy danh sách diễn viên');
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách diễn viên:', error);
+      }
+    },
+
+    // Thêm một dòng để nhập diễn viên mới
+    addNewActor() {
+      this.newActors.push({ nameActor: '' });
+    },
+
+    // Xóa một dòng diễn viên mới
+    removeActor(index) {
+      this.newActors.splice(index, 1);
+    },
+
+    // Lưu danh sách diễn viên mới
+    async saveActors() {
+      try {
+        const response = await axios.put(
+          `http://localhost:8080/actors/update-actors/${this.movieId}`,
+          this.newActors.filter(actor => actor.nameActor.trim()) // Loại bỏ các dòng trống
+        );
+        if (response.data.success) {
+          alert(response.data.desc || 'Lưu thành công');
+          this.existingActors = response.data.data;
+          this.closeAddActorForm();
+        } else {
+          alert(response.data.desc || 'Không thể lưu danh sách diễn viên');
+        }
+      } catch (error) {
+        console.error('Lỗi khi lưu danh sách diễn viên:', error);
+      }
+    },
 
   },
 };
@@ -576,10 +654,11 @@ export default {
 <style scoped>
 .management-system-page {
   display: flex;
+  position: relative; 
 }
 
 .toggle-sidebar-btn {
-  position: fixed;
+  position: absolute;
   z-index: 1000;
   padding: 4px 10px;
   font-size: 15px; 
@@ -928,6 +1007,156 @@ export default {
   background-color: #0056b3;
   transform: scale(1.05);
 }
+
+/* Modal tổng */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  color:#333;
+}
+
+/* Nội dung modal */
+.modal-content {
+  background-color: white;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Tiêu đề */
+.modal-content h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+/* Danh sách diễn viên hiện tại */
+.existing-actors h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.existing-actors ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.existing-actors li {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.existing-actors li:last-child {
+  border-bottom: none;
+}
+
+/* Thêm diễn viên mới */
+.add-new-actors h3 {
+  font-size: 18px;
+  margin: 20px 0 10px;
+  color: #444;
+}
+
+.new-actor {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.new-actor input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+/* Nút hành động tổng quát */
+.modal-content button {
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 14px;
+  margin: 10px 5px 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Nút Lưu */
+.modal-content button.save {
+  background-color: #28a745; /* Xanh lá */
+  color: white;
+}
+
+.modal-content button.save:hover {
+  background-color: #218838; /* Xanh lá đậm hơn */
+}
+
+/* Nút Đóng */
+.modal-content button.close {
+  background-color: #6c757d; /* Xám */
+  color: white;
+}
+
+.modal-content button.close:hover {
+  background-color: #5a6268; /* Xám đậm hơn */
+}
+
+/* Nút Thêm (+) */
+.add-new-actors button {
+  background-color: #007bff; /* Xanh dương */
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-new-actors button:hover {
+  background-color: #0056b3; /* Xanh dương đậm hơn */
+}
+
+/* Nút Xóa */
+.new-actor button {
+  background-color: #dc3545; /* Đỏ */
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.new-actor button:hover {
+  background-color: #c82333; /* Đỏ đậm hơn */
+}
+
+
 
 /* Đảm bảo form có responsive */
 @media (max-width: 768px) {

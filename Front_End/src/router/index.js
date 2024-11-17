@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../pages/HomePage.vue';  // Import Home Page
 import FavoriteMovies from '../pages/FavoriteMovies.vue';
 // import SearchPage from '../pages/SearchPage.vue';
-import RankComponent from '../components/RankComponent.vue';
+import RankingMovies from '../pages/RankingMovies.vue';
 import SearchResults from '../pages/SearchResults.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import store from '../store/store.js';  
@@ -20,7 +20,7 @@ const routes = [
   { path: '/', name : 'home',component: HomePage },  // Định nghĩa route cho HomePage
   { path: '/signin', name : 'login',component: LoginPage },
   { path: '/signup', name : 'signup', component: SignupPage },
-  { path: '/xep-hang', name : 'rank', component: RankComponent },
+  { path: '/xep-hang', name : 'rank', component: RankingMovies },
   { path: '/search', name: 'search-results', component: SearchResults },
   { path: '/settings', name: 'setting', component: UserSettings },
   { path: '/favouriteMovies', name: 'favouriteMovies', component: FavoriteMovies },

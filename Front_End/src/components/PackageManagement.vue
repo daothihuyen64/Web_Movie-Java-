@@ -248,6 +248,7 @@ h2 {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
+  color:#333;
 }
 
 .add-package-form input,

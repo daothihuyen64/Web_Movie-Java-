@@ -41,6 +41,11 @@
 
     <!-- Thanh tìm kiếm -->
     <div class="search-bar">
+       <!-- Dropdown chọn loại tìm kiếm -->
+      <select v-model="searchType" class="search-type">
+        <option value="movie">Tìm theo Phim</option>
+        <option value="actor">Tìm theo Diễn Viên</option>
+      </select>
       <input 
         type="text" 
         v-model="searchQuery" 
@@ -72,6 +77,7 @@ export default {
       activeDropdown: null, // Xác định dropdown nào đang mở
       searchQuery: '',
       searchImage: null,
+      searchType: 'movie',
     };
   },
 
@@ -139,10 +145,19 @@ export default {
       this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
     },
     handleSearch() {
-      if (this.searchQuery.trim() !== '') {
-        this.$router.push({ name: 'search-results', query: { q: this.searchQuery } });
-      }
-    },
+    if (!this.searchQuery.trim()) {
+      alert('Vui lòng nhập từ khóa tìm kiếm');
+      return;
+    }
+    // Chuyển hướng sang SearchResult với các tham số query
+    this.$router.push({
+      name: 'search-results',
+      query: {
+        type: this.searchType,
+        q: this.searchQuery,
+      },
+    });
+  },
     triggerFileInput() {
       this.$refs.fileInput.click();
     },
