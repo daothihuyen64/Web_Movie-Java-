@@ -6,6 +6,7 @@ import com.webxemphim.demo.dto.ActorDTO;
 import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.service.ActorService;
+import com.webxemphim.demo.service.MovieService;
 
 import java.util.List;
 
@@ -52,4 +53,11 @@ public class ActorController {
         ResponseData responseData = actorService.updateActors(actorDTOList, movieId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+
+    @GetMapping("/{id}/movies")
+    public ResponseEntity<ResponseData> getAllMovieActor(@PathVariable int id) {
+        ResponseData responseData = actorService.getAllMovieActor(id);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 }

@@ -2,11 +2,13 @@ package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.MovieDTO;
 import com.webxemphim.demo.dto.MovieDetailDTO;
+import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
 import com.webxemphim.demo.entity.Actor;
 import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Genre;
 import com.webxemphim.demo.entity.Movie;
+import com.webxemphim.demo.entity.Movie_Actor;
 import com.webxemphim.demo.entity.Release_Year;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.CountryInterface;
@@ -16,6 +18,7 @@ import com.webxemphim.demo.repository.ReleaseYearInterface;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -266,4 +269,27 @@ public class MovieService {
     
         return new ResponseData(200, true, "Lấy danh sách tất cả phim thành công!", movies);
     }
+    public ResponseData getAllActorOfMovie(int movieId) {
+    try {
+        // Lấy thông tin phim theo ID
+        Optional<Movie> optionalMovie = movieRepository.findById(movieId);
+        if (optionalMovie.isPresent()) {
+            Movie movie = optionalMovie.get();
+
+            // Lấy danh sách các diễn viên từ bảng liên kết
+            List<SimpleActorDTO> actors = movie.getMovie_actorList().stream()
+                    .map(Movie_Actor::getActor) // Lấy Actor từ Movie_Actor
+                    .map(actor -> modelMapper.map(actor, SimpleActorDTO.class)) // Chuyển đổi Actor sang DTO
+                    .sorted(Comparator.comparing(SimpleActorDTO::getNameActor)) // Sắp xếp theo tên
+                    .collect(Collectors.toList());
+
+            return new ResponseData(HttpStatus.OK.value(), true, "Lấy danh sách diễn viên thành công!", actors);
+        } else {
+            return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Phim không tồn tại!", null);
+        }
+    } catch (Exception e) {
+        return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, 
+                "Lỗi trong quá trình xử lý: " + e.getMessage(), null);
+    }
+}
 }
