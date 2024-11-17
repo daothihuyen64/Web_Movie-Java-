@@ -1,6 +1,8 @@
 package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.ActorDTO;
+import com.webxemphim.demo.dto.DetailActorDTO;
+import com.webxemphim.demo.dto.MovieDTO;
 import com.webxemphim.demo.dto.MovieDetailDTO;
 import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
@@ -137,4 +139,32 @@ public class ActorService {
     
         return new ResponseData(200, true, "Lấy danh sách tất cả diễn viên thành công!", actors);
     }
+    public ResponseData getAllMovieActor(int actorId) {
+        try {
+            // Tìm diễn viên theo ID
+            Optional<Actor> optionalActor = actorRepository.findById(actorId);
+            if (optionalActor.isPresent()) {
+                Actor actor = optionalActor.get();
+    
+                // Lấy danh sách các bộ phim mà diễn viên đã tham gia và sắp xếp theo thứ tự từ điển
+                List<MovieDTO> movies = actor.getMovie_actorList().stream()
+                        .map(Movie_Actor::getMovie) // Lấy movie từ Movie_Actor
+                        .map(movie -> modelMapper.map(movie, MovieDTO.class)) // Map Movie sang MovieDTO
+                        .sorted(Comparator.comparing(MovieDTO::getMovieName)) // Sắp xếp theo tên phim
+                        .collect(Collectors.toList());
+    
+                // Map Actor sang DetailActorDTO
+                DetailActorDTO detailActorDTO = modelMapper.map(actor, DetailActorDTO.class);
+                detailActorDTO.setMovies(movies);
+    
+                return new ResponseData(HttpStatus.OK.value(), true, "Lấy danh sách phim diễn viên đã tham gia thành công!", detailActorDTO);
+            } else {
+                return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Diễn viên không tồn tại!", null);
+            }
+        } catch (Exception e) {
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false,
+                    "Lỗi khi lấy danh sách phim diễn viên đã tham gia: " + e.getMessage(), null);
+        }
+    }
+
 }
