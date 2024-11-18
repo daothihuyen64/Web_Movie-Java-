@@ -1,66 +1,38 @@
 <template>
   <nav class="navigation">
     <ul>
-      <!-- Dropdown cho Thể Loại -->
-      <li class="dropdown" @click="toggleDropdown('genres')">
-        <a href="#">Thể Loại</a>
-        <div :class="{'dropdown-menu': true, 'active': activeDropdown === 'genres'}">
+      <li v-for="menu in dropdownMenus" :key="menu.key" class="dropdown" @click="toggleDropdown(menu.key)">
+        <a href="#">{{ menu.label }}</a>
+        <div :class="{'dropdown-menu': true, 'active': activeDropdown === menu.key}">
           <div class="grid-container">
-            <div v-for="genre in genres" :key="genre.id" class="item">
-              <router-link :to="{ name: 'IdGenreMoviesPage', params: { genreId: genre.id } }" @click="handleGenreClick">{{ genre.genreName }}</router-link>
+            <div v-for="item in menu.data" :key="item.id" class="item">
+              <router-link :to="{ name: menu.routeName, params: { [menu.paramKey]: item.id } }" @click="handleDropdownClick">{{ item[menu.displayKey] }}</router-link>
             </div>
           </div>
         </div>
       </li>
-      
-      <!-- Dropdown cho Quốc Gia -->
-      <li class="dropdown" @click="toggleDropdown('countries')">
-        <a href="#">Quốc Gia</a>
-        <div :class="{'dropdown-menu': true, 'active': activeDropdown === 'countries'}">
-          <div class="grid-container">
-            <div v-for="country in countries" :key="country.id" class="item">
-              <router-link :to="{ name: 'IdCountryMoviesPage', params: { countryId: country.id } }" @click="handleCountryClick">{{ country.countryName }}</router-link>
-            </div>
-          </div>
-        </div>
-      </li>
-      
-      <!-- Dropdown cho Năm phát hành -->
-      <li class="dropdown" @click="toggleDropdown('releaseYear')">
-        <a href="#">Năm phát hành</a>
-        <div :class="{'dropdown-menu': true, 'active': activeDropdown === 'releaseYear'}">
-          <div class="grid-container">
-            <div v-for="releaseYear in releaseYears" :key="releaseYear.id" class="item">
-              <router-link :to="{ name: 'IdReleaseYearMoviesPage', params: { releaseYearId: releaseYear.id } }" @click="handleReleaseYearClick">{{ releaseYear.year }}</router-link>
-            </div>
-          </div>
-        </div>
-      </li>
-      <li><router-link to="/xep-hang">Xếp Hạng</router-link></li>
+      <li><router-link to="/xep-hang" @click="closeAllDropdowns">Xếp Hạng</router-link></li>
     </ul>
 
-    <!-- Thanh tìm kiếm -->
     <div class="search-bar">
-       <!-- Dropdown chọn loại tìm kiếm -->
-      <select v-model="searchType" class="search-type">
-        <option value="movie">Tìm theo Phim</option>
-        <option value="actor">Tìm theo Diễn Viên</option>
-      </select>
       <input 
         type="text" 
         v-model="searchQuery" 
-        placeholder="Tìm kiếm theo tên hoặc ảnh..."
-        @keyup.enter="handleSearch" 
+        placeholder="Nhập từ khóa..." 
+        @keyup.enter="handleSearch"
+        class="search-input"
       />
-      <button @click="handleSearch">Tìm</button>
-      <button @click="triggerFileInput">Tải ảnh</button>
-      <input
-        type="file"
-        ref="fileInput" 
-        @change="handleImageSearch" 
-        accept="image/*" 
-        style="display: none;" 
-      />
+      <div class="search-dropdown">
+        <button @click="toggleSearchDropdown" class="search-button">
+          {{ searchType === 'movie' ? 'Tìm' : 'Tìm' }}
+          <span class="dropdown-icon">▼</span>
+        </button>
+        <div v-if="showSearchDropdown" class="search-options">
+          <div v-for="option in searchOptions" :key="option" @click="selectSearchOption(option)" class="search-option">
+            {{ option === 'movie' ? 'Phim' : 'Diễn Viên' }}
+          </div>
+        </div>
+      </div>
     </div>
   </nav>
 </template>
@@ -71,113 +43,86 @@ export default {
   name: 'NavigationComponent',
   data() {
     return {
-      releaseYears : [],
       genres: [],
       countries: [],
-      activeDropdown: null, // Xác định dropdown nào đang mở
+      releaseYears: [],
+      showSearchDropdown: false,
       searchQuery: '',
-      searchImage: null,
       searchType: 'movie',
+      activeDropdown: null,
+      dropdownMenus: [
+        { key: 'genres', label: 'Thể Loại', data: [], routeName: 'IdGenreMoviesPage', paramKey: 'genreId', displayKey: 'genreName' },
+        { key: 'countries', label: 'Quốc Gia', data: [], routeName: 'IdCountryMoviesPage', paramKey: 'countryId', displayKey: 'countryName' },
+        { key: 'releaseYear', label: 'Năm phát hành', data: [], routeName: 'IdReleaseYearMoviesPage', paramKey: 'releaseYearId', displayKey: 'year' }
+      ],
+      searchOptions: ['movie', 'actor']
     };
   },
-
+  created() {
+    this.fetchDropdownData();
+  },
   mounted() {
     document.addEventListener('click', this.closeDropdownOnClickOutside);
   },
   beforeUnmount() {
     document.removeEventListener('click', this.closeDropdownOnClickOutside);
   },
-
-  created() {
-    this.fetchGenres();
-    this.fetchCountries();
-    this.fetchReleaseYears();
-  },
   methods: {
-    async fetchGenres() {
+    async fetchDropdownData() {
       try {
-        const response = await axios.get(`http://localhost:8080/api/genres`);
-        if (response.status === 200 && response.data.success) {
-          this.genres = response.data.data;
-        }
+        const [genres, countries, releaseYears] = await Promise.all([
+          axios.get('http://localhost:8080/api/genres'),
+          axios.get('http://localhost:8080/api/countries'),
+          axios.get('http://localhost:8080/api/releaseyear')
+        ]);
+        this.dropdownMenus[0].data = genres.data.data || [];
+        this.dropdownMenus[1].data = countries.data.data || [];
+        this.dropdownMenus[2].data = releaseYears.data.data || [];
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin thể loại', error);
+        console.error('Lỗi khi lấy thông tin dropdown', error);
       }
     },
-    async fetchCountries() {
-      try {
-        const response = await axios.get(`http://localhost:8080/api/countries`);
-        if (response.status === 200 && response.data.success) {
-          this.countries = response.data.data;
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy thông tin quốc gia', error);
-      }
-    },
-    async fetchReleaseYears() {
-      try {
-        const response = await axios.get(`http://localhost:8080/api/releaseyear`);
-        if (response.status === 200 && response.data.success) {
-          this.releaseYears = response.data.data;
-        }
-      } catch (error) {
-        console.error('Lỗi khi lấy thông tin năm phát hành', error);
-      }
+    closeAllDropdowns() {
+      this.activeDropdown = null; // Đóng tất cả dropdown của thể loại, quốc gia, năm phát hành
+      this.showSearchDropdown = false; // Đóng dropdown tìm kiếm
     },
     toggleDropdown(menu) {
       this.activeDropdown = this.activeDropdown === menu ? null : menu;
+      this.showSearchDropdown = false;
     },
     closeDropdownOnClickOutside(event) {
-      if (this.activeDropdown && !this.$el.contains(event.target)) {
-        this.activeDropdown = null;
+      if (!this.$el.contains(event.target)) {
+        this.closeAllDropdowns(); // Đóng tất cả dropdown nếu click ngoài vùng dropdown
       }
     },
-    handleGenreClick(event) {
-      event.stopPropagation(); // Ngăn chặn việc đóng dropdown
-      this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
+    handleDropdownClick(event) {
+      // Dừng lan truyền sự kiện click và đóng dropdown
+      event.stopPropagation();
+      this.activeDropdown = null;
     },
-    handleCountryClick(event) {
-      event.stopPropagation(); // Ngăn chặn việc đóng dropdown
-      this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
+    toggleSearchDropdown() {
+      this.showSearchDropdown = !this.showSearchDropdown;
+      this.activeDropdown = null;
     },
-    handleReleaseYearClick(event) {
-      event.stopPropagation(); // Ngăn chặn việc đóng dropdown
-      this.activeDropdown = null; // Có thể đóng dropdown sau khi chọn
+    selectSearchOption(option) {
+      this.searchType = option;
+      this.showSearchDropdown = false;
+      this.handleSearch();
     },
     handleSearch() {
-    if (!this.searchQuery.trim()) {
-      alert('Vui lòng nhập từ khóa tìm kiếm');
-      return;
-    }
-    // Chuyển hướng sang SearchResult với các tham số query
-    this.$router.push({
-      name: 'search-results',
-      query: {
-        type: this.searchType,
-        q: this.searchQuery,
-      },
-    });
-  },
-    triggerFileInput() {
-      this.$refs.fileInput.click();
-    },
-    handleImageSearch(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.searchImage = e.target.result;
-          this.$router.push({ name: 'search-results', query: { img: this.searchImage } });
-        };
-        reader.readAsDataURL(file);
+      if (!this.searchQuery.trim()) {
+        alert('Vui lòng nhập từ khóa tìm kiếm');
+        return;
       }
+      this.$router.push({ name: 'search-results', query: { type: this.searchType, q: this.searchQuery } });
+      this.searchQuery = '';
     }
   }
 };
 </script>
 
 <style scoped>
-/* CSS như cũ */
+
 .navigation {
   background-color: #111;
   padding: 10px 20px;
@@ -206,32 +151,6 @@ export default {
 .navigation a:hover {
   color: #3498db;
 }
-
-.search-bar {
-  display: flex;
-  align-items: center;
-}
-
-.search-bar input[type="text"] {
-  padding: 5px;
-  border: none;
-  border-radius: 4px;
-  margin-right: 10px;
-}
-
-.search-bar button {
-  background-color: #ffcc00;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.search-bar button:hover {
-  background-color: #ff9900;
-}
-
 .dropdown {
   position: relative;
 }
@@ -265,13 +184,71 @@ export default {
   border-radius: 5px;
 }
 
-.item a {
-  color: white;
-  text-decoration: none;
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
 }
 
-.item a:hover {
-  color: #3498db;
-  background-color: #555;
+.search-input {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex-grow: 1;
 }
+
+.search-dropdown {
+  position: relative;
+}
+
+.search-button {
+  padding: 6px 12px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.search-button .dropdown-icon {
+  margin-left: 5px;
+}
+
+.search-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 100;
+  width: 120px; /* Giảm kích thước chiều rộng */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-option {
+  padding: 6px 8px; /* Giảm padding */
+  cursor: pointer;
+  font-size: 14px; /* Giảm kích thước chữ */
+  color: #333;
+  text-align: left; /* Căn giữa chữ */
+  transition: background-color 0.2s ease;
+}
+
+.search-option:hover {
+  background-color: #f0f0f0; /* Màu nền khi hover */
+}
+
+.search-option:not(:last-child) {
+  border-bottom: 1px solid #ddd; /* Đường viền phân cách */
+}
+
+
+
 </style>

@@ -1,4 +1,10 @@
 <template>
+  <Notification
+      v-if="notificationVisible"
+      :message="notificationMessage"
+      :type="notificationType"
+      @close="notificationVisible = false"
+    />
   <div class="management-system-page">
     <button class="toggle-sidebar-btn" @click="toggleSidebar">
      {{ isSidebarOpen ? '</>' : '</>' }}
@@ -253,6 +259,7 @@ import axios from '@/axios';
 import UserManagement from '../components/UserManagement.vue';
 import ActorManagement from "../components/ActorManagement.vue";
 import PackageManagement from "../components/PackageManagement.vue";
+import Notification from '../components/Notification.vue';
 
 export default {
   name: 'ManagementSystemPage',
@@ -260,6 +267,7 @@ export default {
     UserManagement,
     ActorManagement,
     PackageManagement,
+    Notification,
   },
   data() {
     return {
@@ -314,6 +322,10 @@ export default {
       movieId: null,
       existingActors: [],
       newActors: [{ nameActor: '' }], // Khởi tạo với 1 dòng trống
+
+      notificationVisible: false,
+      notificationMessage: '',
+      notificationType : 'success',
     };
   },
   async created() {
@@ -402,17 +414,17 @@ export default {
         });
 
         if (response.status === 200 && response.data.success) {
-          alert('Thêm phim thành công!');
+          this.showNotification('Thêm phim thành công');
           await this.fetchMovies();
           this.applyFilters();
           this.isAddMovieFormVisible = false; // Ẩn form sau khi thêm phim
           this.resetNewMovieForm();
         } else {
-          alert('Có lỗi xảy ra khi thêm phim!');
+          this.showNotification(response.data.desc, 'error');
         }
       } catch (error) {
         console.error('Lỗi khi gọi API thêm phim:', error);
-        alert('Có lỗi xảy ra, vui lòng thử lại!');
+        this.showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
       }
     },
     async resetMenuItemMovie() {
@@ -452,7 +464,7 @@ export default {
           this.currentMovie = response.data.data;
           this.isEditMovieFormVisible = true;
         } else {
-          alert('Không lấy được thông tin phim!');
+          this.showNotification('Không lấy được thông tin phim!', 'error');
         }
       } catch (error) {
         console.error('Lỗi khi lấy thông tin phim:', error);
@@ -479,16 +491,16 @@ export default {
         );
 
         if (response.status === 200 && response.data.success) {
-          alert('Cập nhật phim thành công!');
+          this.showNotification('Cập nhật phim thành công!');
           this.isEditMovieFormVisible = false; // Ẩn form sau khi cập nhật
           await this.fetchMovies(); // Tải lại danh sách phim
           this.applyFilters();
         } else {
-          alert('Cập nhật phim thất bại!');
+          this.showNotification('Cập nhật phim thất bại!', 'error');
         }
       } catch (error) {
         console.error('Lỗi khi cập nhật phim:', error);
-        alert('Có lỗi xảy ra, vui lòng thử lại!');
+        this.showNotification('Có lỗi xảy ra, vui lòng thử lại!', 'error');
       }
     },
     closeEditMovieForm() {
@@ -532,8 +544,8 @@ export default {
     
     if (existingEpisode && existingEpisode.id && this.checkEpisodeURL(existingEpisode.episodeUrl)) {
       await this.updateEpisodeUrl(episodeId, newUrl);
-    } else {
-      await this.addEpisodeUrl(movieId, episodeNumber, newUrl);
+    } else  if(this.checkEpisodeURL(newUrl)){
+          await this.addEpisodeUrl(movieId, episodeNumber, newUrl); 
     }
   },
   async updateEpisodeUrl(episodeId, newUrl) {
@@ -543,7 +555,7 @@ export default {
       });
 
       if (response.data.success) {
-        alert(response.data.desc);
+        this.showNotification(response.data.desc);
         this.openAddEpisodeForm();
       } 
     } catch (error) {
@@ -559,11 +571,11 @@ export default {
       });
 
       if (response.data.success) {
-        alert(response.data.desc);
+        this.showNotification(response.data.desc);
         this.openAddEpisodeForm();
       }
       else{
-        alert(response.data.desc);
+        this.showNotification(response.data.desc);
       }
     } catch (error) {
       console.error('Error adding episode URL:', error);
@@ -576,13 +588,13 @@ export default {
   checkEpisodeURL(episodeUrl){
      if (!episodeUrl || episodeUrl.trim() === '') {
       // Nếu URL trống, hiển thị thông báo lỗi cho tập phim này
-      alert('Vui lòng nhập URL!');
+      this.showNotification('Vui lòng nhập URL!', 'error');
       return false;
     } else {
       // Kiểm tra định dạng của URL
       const urlPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
       if (!urlPattern.test(episodeUrl)) {
-        alert('Nhập đúng định dạng URL!');
+        this.showNotification('Nhập đúng định dạng URL!', 'error');
         return false;
       }
     }
@@ -611,7 +623,7 @@ export default {
         if (response.data.success) {
           this.existingActors = response.data.data;
         } else {
-          alert(response.data.desc || 'Không thể lấy danh sách diễn viên');
+          this.showNotification(response.data.desc, 'error');
         }
       } catch (error) {
         console.error('Lỗi khi lấy danh sách diễn viên:', error);
@@ -636,15 +648,20 @@ export default {
           this.newActors.filter(actor => actor.nameActor.trim()) // Loại bỏ các dòng trống
         );
         if (response.data.success) {
-          alert(response.data.desc || 'Lưu thành công');
+          this.showNotification(response.data.desc);
           this.existingActors = response.data.data;
           this.closeAddActorForm();
         } else {
-          alert(response.data.desc || 'Không thể lưu danh sách diễn viên');
+          this.showNotification(response.data.desc, 'error');
         }
       } catch (error) {
         console.error('Lỗi khi lưu danh sách diễn viên:', error);
       }
+    },
+    showNotification(message, type = 'success') {
+      this.notificationMessage = message;
+      this.notificationType = type;
+      this.notificationVisible = true;
     },
 
   },

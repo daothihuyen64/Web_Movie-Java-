@@ -1,4 +1,10 @@
 <template>
+  <Notification
+      v-if="notificationVisible"
+      :message="notificationMessage"
+      :type="notificationType"
+      @close="notificationVisible = false"
+    />
   <div class="package-management">
     <!-- Hiển thị nút + và danh sách gói dịch vụ nếu form thêm gói không hiển thị -->
     <div v-if="!isAddPackageFormVisible">
@@ -72,8 +78,12 @@
 
 <script>
 import axios from "@/axios";
+import Notification from './Notification.vue';
 
 export default {
+  components: {
+    Notification,
+  },
   data() {
     return {
       packages: [], // Danh sách các gói dịch vụ
@@ -85,6 +95,9 @@ export default {
         accessDuration: 0,
         description: "",
       }, // Gói dịch vụ mới
+      notificationVisible: false,
+      notificationMessage: '',
+      notificationType : 'success',
     };
   },
   created() {
@@ -118,31 +131,55 @@ export default {
         description: "",
       };
     },
-    // Thêm gói dịch vụ mới
+
+   // Thêm gói dịch vụ mới
     async addPackage() {
       try {
         const response = await axios.post(
           "http://localhost:8080/packages/add",
           this.newPackage
         );
-        this.packages.push(response.data.data);
-        this.closeAddPackageForm();
-        alert("Thêm gói thành công!");
+
+        if (response.data.success) {
+          // Nếu success là true, tiến hành các bước tiếp theo
+          this.packages.push(response.data.data);
+          this.closeAddPackageForm();
+          this.showNotification("Thêm gói thành công!");
+        } else {
+          // Nếu success là false, hiển thị thông báo lỗi từ response
+          this.showNotification(response.data.desc, "error");
+        }
       } catch (error) {
         console.error("Lỗi khi thêm gói dịch vụ:", error);
+        this.showNotification("Có lỗi xảy ra khi thêm gói.", "error");
       }
     },
+
     // Xóa gói dịch vụ
     async deletePackage(packageId) {
       try {
         const response = await axios.delete(
           `http://localhost:8080/packages/delete/${packageId}`
         );
-        this.packages = this.packages.filter((pkg) => pkg.id !== packageId);
-        alert(response.data.desc || "Xóa gói thành công!");
+
+        if (response.data.success) {
+          // Nếu success là true, tiến hành xóa gói và hiển thị thông báo
+          this.packages = this.packages.filter((pkg) => pkg.id !== packageId);
+          this.showNotification(response.data.desc);
+        } else {
+          // Nếu success là false, hiển thị thông báo lỗi từ response
+          this.showNotification(response.data.desc, "error");
+        }
       } catch (error) {
         console.error("Lỗi khi xóa gói dịch vụ:", error);
+        this.showNotification("Có lỗi xảy ra khi xóa gói.", "error");
       }
+    },
+
+    showNotification(message, type = 'success') {
+      this.notificationMessage = message;
+      this.notificationType = type;
+      this.notificationVisible = true;
     },
     // Định dạng giá tiền
     formatPrice(price) {

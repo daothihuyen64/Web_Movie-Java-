@@ -4,7 +4,7 @@
     <div class="trending-movies-container">
       <button @click="scrollLeft" class="arrow left-arrow">&lt;</button>
       <div class="trending-movies-list" ref="moviesList">
-        <div class="trending-movie-card" v-for="(movie, index) in movies" :key="index">
+        <div class="trending-movie-card" v-for="(movie, index) in movies" :key="index" @click="goToMovieInfo(movie.id)">
           <img :src="movie.poster" alt="Movie Poster" class="movie-card__image" />
           
           <!-- Phần thông tin phim -->
@@ -40,6 +40,12 @@ export default {
     scrollRight() {
       const container = this.$refs.moviesList;
       container.scrollLeft += 300; // Di chuyển sang phải
+    },
+    goToMovieInfo(movieId) {
+      this.$router.push({ 
+        name: 'InfoMoviePage', 
+        params: { id: movieId },
+      });
     },
   },
 };
