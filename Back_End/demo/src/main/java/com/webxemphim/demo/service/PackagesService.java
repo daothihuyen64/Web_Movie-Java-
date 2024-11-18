@@ -55,7 +55,7 @@ public class PackagesService {
     public Optional<PackagesDTO> getPackage(int id) {
         Optional<Packages> optionalPackage = packagesRepository.findById(id);
         // Kiểm tra nếu gói dịch vụ tồn tại và có status = 1
-        if (optionalPackage.isPresent() && optionalPackage.get().getStatus() == 1) {
+        if (optionalPackage.isPresent() && optionalPackage.get().getStatus() != 0) {
             return optionalPackage.map(this::convertToDTO);
         }
         return Optional.empty(); // Trả về rỗng nếu gói không tồn tại hoặc không có status = 1
@@ -65,7 +65,7 @@ public class PackagesService {
     public List<PackagesDTO> getPackages() {
         List<Packages> packagesList = packagesRepository.findAll()
                 .stream()
-                .filter(pkg -> pkg.getStatus() == 1) // Chỉ lấy các gói có status = 1
+                .filter(pkg -> pkg.getStatus() != 0) // Chỉ lấy các gói có status = 1
                 .collect(Collectors.toList());
         return packagesList.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
