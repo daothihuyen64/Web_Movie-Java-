@@ -17,6 +17,7 @@ import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UpdateUserDTO;
 import com.webxemphim.demo.dto.UserDTO;
+import com.webxemphim.demo.dto.SimpleUserDTO;
 import com.webxemphim.demo.entity.Favorite_Movie;
 import com.webxemphim.demo.entity.Movie;
 import com.webxemphim.demo.entity.Packages;
@@ -77,18 +78,18 @@ public class UserService implements UserServiceImp{
 
     //Lấy thông tin của 1 User
     @Override
-    public UserDTO getUser(int id) {
+    public SimpleUserDTO getUser(int id) {
 
         User user = userRepository.findById(id).orElse(null);
-        UserDTO userDTO = new UserDTO();
+        SimpleUserDTO simpleUserDTO = new SimpleUserDTO();
 
-        userDTO.setId(user.getId());
-        userDTO.setUserName(user.getUserName());
-        userDTO.setPassword(user.getPassword());
-        userDTO.setNickName(user.getNickName());
-        userDTO.setPhone(user.getPhone());
+        simpleUserDTO.setId(user.getId());
+        simpleUserDTO.setUserName(user.getUserName());
+        simpleUserDTO.setPassword(user.getPassword());
+        simpleUserDTO.setNickName(user.getNickName());
+        simpleUserDTO.setPhone(user.getPhone());
 
-        return userDTO;
+        return simpleUserDTO;
     }
 
     //Cập nhật thông tin User
