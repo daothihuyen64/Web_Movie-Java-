@@ -1,6 +1,5 @@
 package com.webxemphim.demo.service;
 
-import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,7 +16,6 @@ import com.webxemphim.demo.service.imp.LoginServiceImp;
 public class LoginService implements LoginServiceImp{
 
     @Autowired
-    // @Qualifier("ten Bean")
     LoginRepository userRepository;
 
     @Autowired
@@ -101,7 +99,7 @@ public class LoginService implements LoginServiceImp{
     }
 
     public boolean isValidPassword(String password) {
-        if (password.length() < 8 || !password.matches(".*[A-Z].*") || !password.matches(".*[0-9].*") || !password.matches(".*[^a-zA-Z0-9].*")) {
+        if(password.length() < 8 || !password.matches(".*[A-Z].*") || !password.matches(".*[0-9].*") || !password.matches(".*[^a-zA-Z0-9].*")) {
             return false; 
         }
         return true;
