@@ -14,7 +14,7 @@
         >
           <div class="poster-container">
             <img
-              :src="item.poster || 'https://via.placeholder.com/150'"
+              :src="item.poster "
               alt="Poster"
               class="poster"
             />

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from '../pages/HomePage.vue';  // Import Home Page
 import FavoriteMovies from '../pages/FavoriteMovies.vue';
-// import SearchPage from '../pages/SearchPage.vue';
 import RankingMovies from '../pages/RankingMovies.vue';
 import SearchResults from '../pages/SearchResults.vue';
 import LoginPage from '../pages/LoginPage.vue';
@@ -38,15 +37,6 @@ const router = createRouter({
   routes,
 });
 
-// router.beforeEach((to, from, next) => {
-//   const isAuthenticated = store.getters.isAuthenticated;
-  
-//   if (to.name !== 'login' && !isAuthenticated) {
-//     next({ name: 'login' });
-//   } else {
-//     next();
-//   }
-// });
 router.beforeEach((to, from, next) => {
   const isAuthenticated = store.getters.isAuthenticated;
 
