@@ -52,4 +52,10 @@ public class PackagesController {
         responseData.setData(packagesService.getPackages());
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    @GetMapping("/all/packages")
+    public ResponseEntity<?> getAllPackages() {
+        ResponseData responseData = new ResponseData();
+        responseData.setData(packagesService.getAllPackages());
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }
