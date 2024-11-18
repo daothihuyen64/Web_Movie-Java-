@@ -100,4 +100,43 @@ public class PackagesService {
                     .collect(Collectors.toList());
             return packagesList.stream().map(this::convertToDTO).collect(Collectors.toList());
         }
+    // Cập nhật thông tin gói dịch vụ
+    public ResponseData updatePackage(int id, PackagesDTO packagesDTO) {
+        try {
+            // Tìm gói dịch vụ theo ID
+            Optional<Packages> optionalPackage = packagesRepository.findById(id);
+            if (optionalPackage.isEmpty()) {
+                return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Gói dịch vụ không tồn tại!", null);
+            }
+
+            Packages packages = optionalPackage.get();
+
+            // Kiểm tra nếu tên gói mới đã tồn tại (ngoại trừ gói hiện tại)
+            Optional<Packages> existingPackage = packagesRepository.findByPackageName(packagesDTO.getPackageName());
+            if (existingPackage.isPresent() && existingPackage.get().getId() != id) {
+                return new ResponseData(HttpStatus.BAD_REQUEST.value(), false, "Tên gói dịch vụ đã tồn tại!", null);
+            }
+
+            // Cập nhật thông tin gói
+            if (packagesDTO.getPackageName() != null && !packagesDTO.getPackageName().isEmpty()) {
+                packages.setPackageName(packagesDTO.getPackageName());
+            }
+            if (packagesDTO.getPrice() > 0) {
+                packages.setPrice(packagesDTO.getPrice());
+            }
+            if (packagesDTO.getAccessDuration() > 0) {
+                packages.setAccessDuration(packagesDTO.getAccessDuration());
+            }
+            if (packagesDTO.getDescription() != null && !packagesDTO.getDescription().isEmpty()) {
+                packages.setDescription(packagesDTO.getDescription());
+            }
+            packages.setStatus(packagesDTO.getStatus()); // Cho phép cập nhật trạng thái
+
+            Packages updatedPackage = packagesRepository.save(packages);
+
+            return new ResponseData(HttpStatus.OK.value(), true, "Cập nhật gói thành công!", convertToDTO(updatedPackage));
+        } catch (Exception e) {
+            return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, "Cập nhật gói thất bại!", null);
+        }
+    }
 }

@@ -58,4 +58,10 @@ public class PackagesController {
         responseData.setData(packagesService.getAllPackages());
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+    // Cập nhật thông tin gói dịch vụ
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updatePackage(@PathVariable int id, @RequestBody PackagesDTO packagesDTO) {
+        ResponseData responseData = packagesService.updatePackage(id, packagesDTO);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
 }
