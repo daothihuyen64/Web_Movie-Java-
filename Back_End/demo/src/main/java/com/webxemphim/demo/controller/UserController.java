@@ -35,6 +35,14 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    //lấy thông tin của tất cả User
+    @GetMapping("/getAllUser")
+    public ResponseEntity<?> getAllUser() {
+
+        return new ResponseEntity<>(userServiceImp.getAllUser(), HttpStatus.OK);
+        
+    }
     
     //lấy thông tin 1 User
     @GetMapping("/getUser/{id}")

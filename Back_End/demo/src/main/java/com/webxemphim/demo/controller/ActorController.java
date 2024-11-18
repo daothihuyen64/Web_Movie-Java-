@@ -3,8 +3,13 @@
 package com.webxemphim.demo.controller;
 
 import com.webxemphim.demo.dto.ActorDTO;
+import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.service.ActorService;
+import com.webxemphim.demo.service.MovieService;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +33,11 @@ public class ActorController {
         ResponseData responseData = actorService.getActor(id);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
-
+    @GetMapping("/all")
+    public ResponseEntity<ResponseData> getAllActors() {
+        ResponseData responseData = actorService.getAllActors();
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
     // @PutMapping("/{id}/add-movie")
     // public ResponseEntity<ResponseData> updateActor(@PathVariable int id, @RequestBody int movieId) {
     //     ResponseData responseData = actorService.updateActor(id, movieId);
@@ -39,9 +48,16 @@ public class ActorController {
     //     return actorService.updateActor(actorId, movieId);
     // }
 
-    @PutMapping("/update-actor/{movieId}")
-    public ResponseEntity<ResponseData> updateActor(@RequestBody ActorDTO actorDTO, @PathVariable int movieId) {
-        ResponseData responseData = actorService.updateActor(actorDTO, movieId);
+    @PutMapping("/update-actors/{movieId}")
+    public ResponseEntity<ResponseData> updateActors(@RequestBody List<SimpleActorDTO> actorDTOList, @PathVariable int movieId) {
+        ResponseData responseData = actorService.updateActors(actorDTOList, movieId);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
+
+    @GetMapping("/{id}/movies")
+    public ResponseEntity<ResponseData> getAllMovieActor(@PathVariable int id) {
+        ResponseData responseData = actorService.getAllMovieActor(id);
+        return new ResponseEntity<>(responseData, HttpStatus.OK);
+    }
+
 }

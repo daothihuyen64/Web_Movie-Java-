@@ -4,14 +4,17 @@ import java.util.List;
 
 import com.webxemphim.demo.dto.FavoriteMovieDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
+import com.webxemphim.demo.dto.SimpleUserDTO;
 import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UpdateUserDTO;
 import com.webxemphim.demo.dto.UserDTO;
+import com.webxemphim.demo.entity.User;
 import com.webxemphim.demo.payload.ResponseData;
 
 public interface UserServiceImp {
-    UserDTO getUser(int id);
+    List<UserDTO> getAllUser();
+    SimpleUserDTO getUser(int id);
     ResponseData updateUser(int userId, UpdateUserDTO updateUserDTO);
     boolean addFavoriteMovie(FavoriteMovieDTO favoriteMovieDTO);
     List<SimpleMovieDTO> getFavoriteMovies(int userId);

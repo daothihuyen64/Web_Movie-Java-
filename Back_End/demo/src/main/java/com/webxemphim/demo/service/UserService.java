@@ -17,6 +17,7 @@ import com.webxemphim.demo.dto.SubscriptionDTO;
 import com.webxemphim.demo.dto.TransactionHistoryDTO;
 import com.webxemphim.demo.dto.UpdateUserDTO;
 import com.webxemphim.demo.dto.UserDTO;
+import com.webxemphim.demo.dto.SimpleUserDTO;
 import com.webxemphim.demo.entity.Favorite_Movie;
 import com.webxemphim.demo.entity.Movie;
 import com.webxemphim.demo.entity.Packages;
@@ -53,20 +54,42 @@ public class UserService implements UserServiceImp{
     @Autowired
     private TransactionRepository transactionRepository;
 
+    //Lấy thông tin của tất cả các user
+    @Override
+    public List<UserDTO> getAllUser() {
+        List<User> listUser = userRepository.findAll();
+        List<UserDTO> userDTOList = new ArrayList<>();
+
+        for (User users : listUser) {
+            UserDTO userDTO = new UserDTO();
+            userDTO.setId(users.getId());
+            userDTO.setUserName(users.getUserName());
+            userDTO.setPassword(users.getPassword());
+            userDTO.setNickName(users.getNickName());
+            userDTO.setPhone(users.getPhone());
+            userDTO.setRole(users.getRole().getId());
+
+            userDTOList.add(userDTO);
+        }
+
+        return userDTOList;
+    }
+
+
     //Lấy thông tin của 1 User
     @Override
-    public UserDTO getUser(int id) {
+    public SimpleUserDTO getUser(int id) {
 
         User user = userRepository.findById(id).orElse(null);
-        UserDTO userDTO = new UserDTO();
+        SimpleUserDTO simpleUserDTO = new SimpleUserDTO();
 
-        userDTO.setId(user.getId());
-        userDTO.setUserName(user.getUserName());
-        userDTO.setPassword(user.getPassword());
-        userDTO.setNickName(user.getNickName());
-        userDTO.setPhone(user.getPhone());
+        simpleUserDTO.setId(user.getId());
+        simpleUserDTO.setUserName(user.getUserName());
+        simpleUserDTO.setPassword(user.getPassword());
+        simpleUserDTO.setNickName(user.getNickName());
+        simpleUserDTO.setPhone(user.getPhone());
 
-        return userDTO;
+        return simpleUserDTO;
     }
 
     //Cập nhật thông tin User
@@ -82,11 +105,17 @@ public class UserService implements UserServiceImp{
                 responseData.setSuccess(false);
                 return  responseData; 
             }
-    
+            
             if (!updateUserDTO.getPassword().equals(updateUserDTO.getConfirmPassword())) {
                 responseData.setDesc("Mật khẩu mới không khớp.");
                 responseData.setSuccess(false);
                 return responseData; 
+            }
+
+            if (!isValidPassword(updateUserDTO.getPassword())) {
+                responseData.setDesc("Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất một chữ cái in hoa, một chữ số và một ký tự đặc biệt.");
+                responseData.setSuccess(false);
+                return responseData;
             }
 
             user.setPassword(passwordEncoder.encode(updateUserDTO.getPassword()));  
@@ -105,6 +134,13 @@ public class UserService implements UserServiceImp{
         responseData.setDesc("Cập nhật thông tin thành công.");   
             
         return responseData;
+    }
+
+    public boolean isValidPassword(String password) {
+        if(password.length() < 8 || !password.matches(".*[A-Z].*") || !password.matches(".*[0-9].*") || !password.matches(".*[^a-zA-Z0-9].*")) {
+            return false; 
+        }
+        return true;
     }
     
     //Tìm kiếm phim bằng tên phim 

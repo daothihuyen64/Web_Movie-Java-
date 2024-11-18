@@ -24,6 +24,11 @@ public class PackagesService {
     public ResponseData addPackage(PackagesDTO packagesDTO) {
 
         try {
+
+            if (packagesDTO.getPackageName() == null || packagesDTO.getPackageName().isEmpty() ||packagesDTO.getPrice() <= 0 || packagesDTO.getAccessDuration() <= 0 ||
+            packagesDTO.getDescription() == null || packagesDTO.getDescription().isEmpty()) {
+            return new ResponseData(HttpStatus.BAD_REQUEST.value(), false, "Vui lòng nhập đầy đủ thông tin gói dịch vụ!", null);
+            }
             // Kiểm tra xem packageName đã tồn tại chưa
             Optional<Packages> existingPackage = packagesRepository.findByPackageName(packagesDTO.getPackageName());
             if (existingPackage.isPresent()) {

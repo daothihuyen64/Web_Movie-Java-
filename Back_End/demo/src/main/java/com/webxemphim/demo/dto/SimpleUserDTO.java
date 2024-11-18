@@ -1,12 +1,11 @@
 package com.webxemphim.demo.dto;
 
-public class UserDTO {
+public class SimpleUserDTO {
     private int id;
     private String userName;
     private String nickName;
     private String password;
     private String phone;
-    private int role;
     
     public int getId() {
         return id;
@@ -38,12 +37,6 @@ public class UserDTO {
     public void setPhone(String phone) {
         this.phone = phone;
     }
-    public int getRole() {
-        return role;
-    }
-    public void setRole(int role) {
-        this.role = role;
-    }
-    
 
+    
 }

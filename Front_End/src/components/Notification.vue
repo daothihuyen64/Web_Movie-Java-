@@ -48,7 +48,7 @@ export default {
   /* right: 20px; */
   padding: 10px 20px;
   border-radius: 5px;
-  z-index: 1000;
+  z-index: 9999;
 }
 
 .notification.success {

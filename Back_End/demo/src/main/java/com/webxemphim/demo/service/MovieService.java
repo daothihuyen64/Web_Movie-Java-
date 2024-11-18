@@ -1,10 +1,14 @@
 package com.webxemphim.demo.service;
 
 import com.webxemphim.demo.dto.MovieDTO;
+import com.webxemphim.demo.dto.MovieDetailDTO;
+import com.webxemphim.demo.dto.SimpleActorDTO;
 import com.webxemphim.demo.dto.SimpleMovieDTO;
+import com.webxemphim.demo.entity.Actor;
 import com.webxemphim.demo.entity.Country;
 import com.webxemphim.demo.entity.Genre;
 import com.webxemphim.demo.entity.Movie;
+import com.webxemphim.demo.entity.Movie_Actor;
 import com.webxemphim.demo.entity.Release_Year;
 import com.webxemphim.demo.payload.ResponseData;
 import com.webxemphim.demo.repository.CountryInterface;
@@ -14,8 +18,10 @@ import com.webxemphim.demo.repository.ReleaseYearInterface;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -109,19 +115,26 @@ public class MovieService {
     
 
     public ResponseData getMovie(int movieId) {
-        try {
-            Movie movie = getActiveMovieOrThrow(movieId);
-            MovieDTO movieDTO = modelMapper.map(movie, MovieDTO.class);
-            return new ResponseData(200, true, "Lấy thông tin phim thành công!", movieDTO);
-        } catch (IllegalArgumentException e) {
-            return new ResponseData(404, false, e.getMessage(), null);
+        Optional<Movie> movieOpt = movieRepository.findById(movieId);
+    
+        if (!movieOpt.isPresent()) {
+            return new ResponseData(404, false, "Không tìm thấy phim!", null);
         }
+    
+        // Chuyển đổi sang DTO để trả về
+        MovieDTO movieDTO = modelMapper.map(movieOpt.get(), MovieDTO.class);
+        return new ResponseData(200, true, "Lấy thông tin phim thành công!", movieDTO);
     }
 
     public ResponseData updateMovie(int id, MovieDTO movieDTO) {
+        Optional<Movie> existingMovieOpt = movieRepository.findFirstByMovieName(movieDTO.getMovieName());
+        if (existingMovieOpt.isPresent() && existingMovieOpt.get().getId() != id) {
+            return new ResponseData(400, false, "Phim đã tồn tại trong hệ thống!", null);
+        }
         // Tìm phim theo ID
         Optional<Movie> movieOpt = movieRepository.findById(id);
-    
+
+        
         // Nếu không tìm thấy phim, trả về lỗi 404
         if (!movieOpt.isPresent()) {
             return new ResponseData(404, false, "Không tìm thấy phim!", null);
@@ -138,7 +151,7 @@ public class MovieService {
         if(movieDTO.getDirector() != null) movie.setDirector(movieDTO.getDirector());
         if(movieDTO.getTotalEpisodes() != 0) movie.setTotalEpisodes(movieDTO.getTotalEpisodes());
         if(movieDTO.getViews() != 0) movie.setViews(movieDTO.getViews());
-        movie.setStatus(1); // Giữ status là 1 khi cập nhật
+        movie.setStatus(movieDTO.getStatus()); // Giữ status là 1 khi cập nhật
     
         // Cập nhật Genre
         if (movieDTO.getGenre() != null) {
@@ -247,4 +260,36 @@ public class MovieService {
         return new ResponseData(200, true, "Lấy danh sách phim mới phát hành thành công!", newMovies);
     }
     
+    public ResponseData getAllMovies() {
+        List<MovieDetailDTO> movies = movieRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Movie::getMovieName))
+                .map(movie -> modelMapper.map(movie, MovieDetailDTO.class)) // Chuyển đổi sang MovieDetailDTO
+                .collect(Collectors.toList());
+    
+        return new ResponseData(200, true, "Lấy danh sách tất cả phim thành công!", movies);
+    }
+    public ResponseData getAllActorOfMovie(int movieId) {
+    try {
+        // Lấy thông tin phim theo ID
+        Optional<Movie> optionalMovie = movieRepository.findById(movieId);
+        if (optionalMovie.isPresent()) {
+            Movie movie = optionalMovie.get();
+
+            // Lấy danh sách các diễn viên từ bảng liên kết
+            List<SimpleActorDTO> actors = movie.getMovie_actorList().stream()
+                    .map(Movie_Actor::getActor) // Lấy Actor từ Movie_Actor
+                    .map(actor -> modelMapper.map(actor, SimpleActorDTO.class)) // Chuyển đổi Actor sang DTO
+                    .sorted(Comparator.comparing(SimpleActorDTO::getNameActor)) // Sắp xếp theo tên
+                    .collect(Collectors.toList());
+
+            return new ResponseData(HttpStatus.OK.value(), true, "Lấy danh sách diễn viên thành công!", actors);
+        } else {
+            return new ResponseData(HttpStatus.NOT_FOUND.value(), false, "Phim không tồn tại!", null);
+        }
+    } catch (Exception e) {
+        return new ResponseData(HttpStatus.INTERNAL_SERVER_ERROR.value(), false, 
+                "Lỗi trong quá trình xử lý: " + e.getMessage(), null);
+    }
+}
 }

@@ -22,7 +22,7 @@
         <p v-if="movieData.genre && movieData.genre.genreName">
           <strong>Thể Loại:</strong> {{ movieData.genre.genreName }}
         </p>
-        <p v-if="movieData.ratingMean">
+        <p v-if="movieData.ratingMean != null">
           <strong>Đánh giá: </strong>
           <span
             v-for="star in 10"
@@ -39,7 +39,7 @@
           </span>
           <span>{{ movieData.ratingMean }}/10</span>
         </p>
-        <p v-if="movieData.views">
+        <p v-if="movieData.views != null">
           <strong>Lượt xem : </strong> {{ movieData.views }}
         </p>
         <div class="button-group">
