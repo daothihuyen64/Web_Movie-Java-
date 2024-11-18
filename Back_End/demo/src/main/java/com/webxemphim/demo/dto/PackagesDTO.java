@@ -6,16 +6,18 @@ public class PackagesDTO {
     private double price;
     private int accessDuration;
     private String description;
+    private int status;
 
     // Constructors
     public PackagesDTO() {}
 
-    public PackagesDTO(int id, String packageName, double price, int accessDuration, String description) {
+    public PackagesDTO(int id, String packageName, double price, int accessDuration, String description, int status) {
         this.id = id;
         this.packageName = packageName;
         this.price = price;
         this.accessDuration = accessDuration;
         this.description = description;
+        this.status = status;
     }
 
     // Getters and Setters
@@ -57,5 +59,13 @@ public class PackagesDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

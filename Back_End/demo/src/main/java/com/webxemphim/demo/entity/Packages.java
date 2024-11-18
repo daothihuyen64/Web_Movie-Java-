@@ -27,6 +27,9 @@ public class Packages {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "status")
+    private int status;
+
     @OneToMany(mappedBy = "packages")
     private List<Transaction> transactionList;
 
@@ -76,5 +79,12 @@ public class Packages {
 
     public void setTransactionList(List<Transaction> transactionList) {
         this.transactionList = transactionList;
+    }
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }
