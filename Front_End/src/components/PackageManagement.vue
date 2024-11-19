@@ -107,7 +107,7 @@ export default {
     // Lấy danh sách gói dịch vụ
     async fetchPackages() {
       try {
-        const response = await axios.get("http://localhost:8080/packages");
+        const response = await axios.get("http://localhost:8080/packages/all/packages");
         this.packages = response.data.data || [];
       } catch (error) {
         console.error("Lỗi khi tải danh sách gói dịch vụ:", error);
