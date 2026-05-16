@@ -36,7 +36,21 @@ export default {
       // Kiểm tra xem route hiện tại có phải là trang đăng nhập hoặc đăng ký không
       return this.$route.name === 'login' || this.$route.name === 'signup';
     }
-  }
+  },
+  created() {
+    // Khôi phục trạng thái Vuex từ localStorage khi ứng dụng tải
+    const token = localStorage.getItem('token');
+    const nickname = localStorage.getItem('nickname');
+    const userId = localStorage.getItem('userId');
+    const role = localStorage.getItem('role');
+
+    if (token) {
+      this.$store.commit('SET_TOKEN', token); // Khôi phục token
+      this.$store.commit('SET_USER_ID', userId); // Khôi phục userId
+      this.$store.commit('SET_nickname', nickname); // Khôi phục nickname
+      this.$store.commit('SET_ROLE', role); // Khôi phục role
+    }
+  },
 };
 </script>
 
