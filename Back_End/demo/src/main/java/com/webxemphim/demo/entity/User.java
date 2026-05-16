@@ -1,7 +1,6 @@
 package com.webxemphim.demo.entity;
 
 import java.util.List;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,8 +19,11 @@ public class User {
     @Column(name = "user_name")
     private String userName;
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "nickname")
+    private String nickName;
 
     @Column(name = "password")
     private String password;
@@ -61,12 +63,20 @@ public class User {
         this.userName = userName;
     }
 
-    public String getEmail() {
-        return email;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
     public String getPassword() {
@@ -123,5 +133,6 @@ public class User {
 
     public void setTransactionList(List<Transaction> transactionList) {
         this.transactionList = transactionList;
-    }
+    } 
+    
 }

@@ -1,5 +1,6 @@
 package com.webxemphim.demo.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,6 +13,9 @@ public class Favorite_Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(name = "active")
+    private boolean active;
 
     @ManyToOne
     @JoinColumn(name = "id_movie")
@@ -28,7 +32,7 @@ public class Favorite_Movie {
     public void setId(int id) {
         this.id = id;
     }
-
+    
     public Movie getMovie() {
         return movie;
     }
@@ -43,6 +47,13 @@ public class Favorite_Movie {
 
     public void setUser(User user) {
         this.user = user;
+    }
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
 }
